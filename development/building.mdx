@@ -1,0 +1,361 @@
+---
+title: Building for Production
+description: Comprehensive guide to building, optimizing, and deploying the Yeray Garrido Portfolio
+---
+
+This guide covers the production build process, optimization strategies, and build configuration details.
+
+## Build Command
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+This command:
+1. Bundles all source files using Vite
+2. Optimizes assets (minification, tree-shaking)
+3. Applies Terser minification with console removal
+4. Implements manual code splitting strategy
+5. Outputs to the `dist/` directory
+
+## Vite Configuration
+
+The build process is configured in `vite.config.ts`. Here's the complete configuration:
+
+```typescript vite.config.ts
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '');
+
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      cssInjectedByJsPlugin(), // Required for Tailwind v4 + Vite in production
+    ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
+      },
+    },
+    build: {
+      cssCodeSplit: true,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              // Separate GitHub calendar for lazy loading with Suspense
+              if (id.includes('react-github-calendar')) return 'vendor-github';
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
+    server: {
+      hmr: process.env.DISABLE_HMR !== 'true',
+    },
+  };
+});
+```
+
+## Build Optimization Strategies
+
+### Terser Minification
+
+The build uses **Terser** for JavaScript minification with aggressive optimization:
+
+```typescript vite.config.ts
+build: {
+  minify: 'terser',
+  terserOptions: {
+    compress: {
+      drop_console: true,    // Removes all console.* calls
+      drop_debugger: true,   // Removes debugger statements
+    },
+  },
+}
+```
+
+<Warning>
+  All `console.log()`, `console.warn()`, and `console.error()` statements are removed in production builds.
+</Warning>
+
+#### Why Console Removal?
+
+- Reduces bundle size
+- Improves runtime performance
+- Prevents sensitive information leakage
+- Cleaner production console
+
+### Manual Code Splitting
+
+The build implements a **manual chunks strategy** for optimal loading performance:
+
+```typescript vite.config.ts
+rollupOptions: {
+  output: {
+    manualChunks(id) {
+      if (id.includes('node_modules')) {
+        // Separate GitHub calendar for lazy loading
+        if (id.includes('react-github-calendar')) return 'vendor-github';
+        return 'vendor';
+      }
+    },
+  },
+}
+```
+
+#### Chunk Strategy
+
+| Chunk | Contains | Reason |
+|-------|----------|--------|
+| `vendor.js` | All node_modules except react-github-calendar | Core dependencies loaded immediately |
+| `vendor-github.js` | react-github-calendar library | Lazy loaded with React Suspense to prevent page break |
+| `index.js` | Application code | Main bundle |
+
+<Tip>
+  The GitHub calendar is separated because it's loaded with React Suspense. Without this separation, the calendar can break the page rendering.
+</Tip>
+
+### CSS Code Splitting
+
+CSS is split per route for optimal loading:
+
+```typescript vite.config.ts
+build: {
+  cssCodeSplit: true,
+}
+```
+
+This generates separate CSS files for different routes, reducing initial page load time.
+
+### CSS Injection Plugin
+
+The **vite-plugin-css-injected-by-js** plugin is critical for Tailwind CSS v4:
+
+```typescript vite.config.ts
+plugins: [
+  react(),
+  tailwindcss(),
+  cssInjectedByJsPlugin(), // Required for Tailwind v4 in production
+]
+```
+
+<Warning>
+  Without `cssInjectedByJsPlugin()`, Tailwind CSS v4 styles will not work correctly in production builds.
+</Warning>
+
+#### Why This Plugin?
+
+- Tailwind CSS v4 requires special handling in Vite
+- Injects CSS via JavaScript for proper loading order
+- Prevents FOUC (Flash of Unstyled Content)
+- Ensures styles are available before first paint
+
+## Build Output Structure
+
+After running `npm run build`, the `dist/` directory structure:
+
+```
+dist/
+├── index.html                 # Main HTML entry point
+├── assets/
+│   ├── index-[hash].js       # Main application bundle
+│   ├── vendor-[hash].js      # Core vendor dependencies
+│   ├── vendor-github-[hash].js  # GitHub calendar (lazy)
+│   ├── index-[hash].css      # Main styles
+│   └── ...
+├── fonts/                     # Custom font files
+│   ├── anton.woff2
+│   ├── syncopate-400.woff2
+│   ├── syncopate-700.woff2
+│   ├── inter-400.woff2
+│   ├── inter-500.woff2
+│   └── inter-600.woff2
+├── img/                       # Images and assets
+│   └── projects/
+│       ├── zalbi_captura.webp
+│       ├── portfolio_captura.webp
+│       └── glocalium_captura.webp
+├── cv.xml                     # CV data for API endpoint
+└── sitemap.xml                # SEO sitemap
+```
+
+### Asset Hashing
+
+All assets include content hashes in filenames:
+- `index-a7f3d2e1.js`
+- `vendor-9b4c8f2a.js`
+
+This enables:
+- **Long-term caching** (1 year+)
+- **Cache invalidation** on content changes
+- **Parallel downloads** from CDN
+
+## Preview Production Build
+
+Test the production build locally before deployment:
+
+```bash
+npm run preview
+```
+
+This starts a local server serving the `dist/` directory, allowing you to:
+- Test production optimizations
+- Verify asset loading
+- Check bundle sizes
+- Test on real devices via network URL
+
+<Tip>
+  Always preview the production build before deploying to catch issues that only appear in optimized builds.
+</Tip>
+
+## Clean Build
+
+Remove the build output directory:
+
+```bash
+npm run clean
+```
+
+This is equivalent to:
+
+```bash
+rm -rf dist
+```
+
+Use this when:
+- Build artifacts are corrupted
+- You need a fresh build
+- Debugging build issues
+- Switching between branches
+
+## Build Performance
+
+### Build Time Optimization
+
+Typical build times:
+- **Initial build**: 5-10 seconds
+- **Incremental builds**: 2-5 seconds
+
+### Bundle Size Analysis
+
+Analyze bundle sizes after build:
+
+```bash
+npm run build
+ls -lh dist/assets/
+```
+
+Expected sizes (gzipped):
+- `index.js`: ~50-80 KB
+- `vendor.js`: ~150-200 KB
+- `vendor-github.js`: ~30-50 KB
+- `index.css`: ~10-20 KB
+
+### Performance Metrics
+
+Target Lighthouse scores:
+- **Performance**: 90+
+- **Accessibility**: 100
+- **Best Practices**: 100
+- **SEO**: 100
+
+## Deployment
+
+The portfolio is optimized for deployment on:
+
+- **Vercel** (recommended)
+- **Netlify**
+- **Cloudflare Pages**
+- Any static hosting service
+
+### Vercel Deployment
+
+The project includes Vercel Analytics and Speed Insights:
+
+```typescript
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+```
+
+These are automatically enabled in production.
+
+### Build Command for Hosting
+
+```bash
+npm install && npm run build
+```
+
+### Output Directory
+
+```
+dist
+```
+
+## Troubleshooting Builds
+
+### Build Fails
+
+If the build fails:
+
+```bash
+# Clear cache and rebuild
+npm run clean
+rm -rf node_modules/.vite
+npm run build
+```
+
+### Type Errors During Build
+
+Run type checking first:
+
+```bash
+npm run lint
+```
+
+Fix any TypeScript errors before building.
+
+### Missing Assets
+
+Ensure all assets are in the `public/` directory:
+- Fonts in `/fonts/`
+- Images in `/img/`
+- `cv.xml` in root
+
+### CSS Not Loading
+
+Verify `cssInjectedByJsPlugin()` is in the Vite plugins array (`vite.config.ts:14`).
+
+### Large Bundle Sizes
+
+If bundles are too large:
+1. Check for unused dependencies
+2. Verify tree-shaking is working
+3. Review manual chunks strategy
+4. Consider lazy loading more components
+
+<Warning>
+  Do not modify the manual chunks strategy for `react-github-calendar` without testing thoroughly. It's separated for a specific reason.
+</Warning>
+
+## Next Steps
+
+- [Customize the portfolio](/development/customization)
+- [Learn about the architecture](/architecture/overview)
+- [Explore deployment options](/deployment/vercel)

@@ -1,0 +1,227 @@
+---
+title: Local Setup
+description: Complete guide to setting up the Yeray Garrido Portfolio development environment locally
+---
+
+This guide walks you through setting up the portfolio development environment on your local machine.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js 18+** - Required for running Vite and React 19
+- **Git** - For cloning the repository
+- **npm** - Package manager (comes with Node.js)
+
+<Warning>
+  Node.js 18 or higher is required due to React 19 dependencies.
+</Warning>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the portfolio source code from GitHub:
+
+    ```bash
+    git clone https://github.com/Garridoparrayeray/yeraygarrido.com.git
+    cd yeraygarrido.com
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required npm packages:
+
+    ```bash
+    npm install
+    ```
+
+    This installs:
+    - **React 19** and **React DOM 19**
+    - **Vite** build tool
+    - **Tailwind CSS v4** with Vite plugin
+    - **GSAP** and **Lenis** for animations
+    - **react-github-calendar** for GitHub activity
+    - **@vercel/analytics** and **@vercel/speed-insights**
+    - **@microsoft/clarity** for user analytics
+  </Step>
+
+  <Step title="Environment Configuration (Optional)">
+    The portfolio uses an optional `.env` file for configuration. Create one if needed:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Available environment variables:
+
+    ```bash .env
+    # Optional: Gemini API key for future AI features
+    # GEMINI_API_KEY="your_key_here"
+
+    # Application URL (auto-injected in production)
+    APP_URL="http://localhost:3000"
+    ```
+
+    <Tip>
+      The `.env` file is optional for local development. The application works without it.
+    </Tip>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the Vite development server:
+
+    ```bash
+    npm run dev
+    ```
+
+    The application will be available at:
+    - **Local**: `http://localhost:3000`
+    - **Network**: `http://0.0.0.0:3000` (accessible from other devices on your network)
+
+    <Tip>
+      The dev server uses `--host=0.0.0.0` to allow access from other devices on your local network, useful for mobile testing.
+    </Tip>
+  </Step>
+</Steps>
+
+## Available Scripts
+
+The portfolio includes the following npm scripts (defined in `package.json`):
+
+<CodeGroup>
+
+```bash Development
+# Start the Vite dev server on port 3000
+npm run dev
+```
+
+```bash Build
+# Build for production
+npm run build
+```
+
+```bash Preview
+# Preview production build locally
+npm run preview
+```
+
+```bash Clean
+# Remove the dist directory
+npm run clean
+```
+
+```bash Type Check
+# Run TypeScript type checking (no emit)
+npm run lint
+```
+
+</CodeGroup>
+
+### Script Details
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| `dev` | `vite --port=3000 --host=0.0.0.0` | Starts development server with HMR |
+| `build` | `vite build` | Creates optimized production build |
+| `preview` | `vite preview` | Previews production build locally |
+| `clean` | `rm -rf dist` | Removes build output directory |
+| `lint` | `tsc --noEmit` | Type-checks TypeScript without compilation |
+
+## Development Features
+
+### Hot Module Replacement (HMR)
+
+The dev server includes Hot Module Replacement for instant updates without page refresh. You can disable HMR if needed:
+
+```bash
+DISABLE_HMR=true npm run dev
+```
+
+### Path Aliases
+
+The project uses `@` as an alias for the root directory:
+
+```typescript
+import Component from '@/src/components/Component'
+```
+
+Configured in `vite.config.ts:18`:
+
+```typescript
+resolve: {
+  alias: {
+    '@': path.resolve(__dirname, '.'),
+  },
+}
+```
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 3000 is already in use:
+
+```bash
+# Kill the process using port 3000
+lsof -ti:3000 | xargs kill -9
+
+# Or use a different port
+vite --port=3001 --host=0.0.0.0
+```
+
+### Module Not Found Errors
+
+If you encounter module resolution issues:
+
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### TypeScript Errors
+
+Run type checking to identify TypeScript issues:
+
+```bash
+npm run lint
+```
+
+### Tailwind CSS Not Working
+
+Ensure Tailwind CSS v4 is properly configured:
+
+1. Check that `@import "tailwindcss"` is in `src/index.css:1`
+2. Verify `@tailwindcss/vite` plugin is loaded in `vite.config.ts:13`
+3. Clear Vite cache: `rm -rf node_modules/.vite`
+
+### HMR Not Working
+
+If hot module replacement stops working:
+
+```bash
+# Restart the dev server
+# Press Ctrl+C, then:
+npm run dev
+```
+
+### Performance Issues
+
+If the dev server is slow:
+
+1. Disable HMR: `DISABLE_HMR=true npm run dev`
+2. Check your browser's DevTools console for errors
+3. Ensure no other intensive processes are running
+
+<Warning>
+  GSAP animations may cause performance issues on low-end devices. Check the browser console for warnings.
+</Warning>
+
+## Next Steps
+
+Once your local environment is set up:
+
+- [Learn about the build process](/development/building)
+- [Customize the portfolio](/development/customization)
+- [Explore the tech stack](/architecture/tech-stack)

@@ -1,0 +1,371 @@
+---
+title: Contact
+description: Contact section with GitHub activity calendar and social media links
+---
+
+The Contact component provides a visually striking call-to-action section featuring a GitHub contribution calendar, animated heading reveals, and prominent email and LinkedIn buttons.
+
+## Features
+
+- **GitHub Contribution Calendar** via react-github-calendar
+- **Animated text reveals** using IntersectionObserver
+- **Date filtering** to show contributions from Oct 2025 onward
+- **Social media CTAs** (Email, LinkedIn)
+- **Inverted color scheme** (white background, black text)
+- **Responsive calendar** with horizontal scrolling on mobile
+
+## Visual Appearance
+
+The section uses a white background (contrasting with the rest of the portfolio) with large display typography for the heading "LET'S WORK TOGETHER". Below are two side-by-side CTA buttons with icon+text layout and hover effects. The GitHub calendar is centered above the heading.
+
+## Component Code
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { GitHubCalendar } from 'react-github-calendar';
+import { useLanguage } from '../context/LanguageContext';
+
+export default function Contact() {
+  const textRef = useRef<HTMLHeadingElement>(null);
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.reveal-line').forEach((el, i) => {
+            (el as HTMLElement).style.transitionDelay = `${i * 0.2}s`; 
+            el.classList.add('in-view');
+          });
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    if (textRef.current) io.observe(textRef.current);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-6 md:px-12 flex flex-col justify-center relative z-10 bg-white text-black overflow-hidden">
+      
+      <div className="max-w-5xl mx-auto w-full mb-16 md:mb-24 flex flex-col items-center overflow-hidden">
+        <h3 className="font-wide text-xl md:text-3xl uppercase mb-8 md:mb-12 font-bold tracking-widest text-center">
+          {t('contact.github')}
+        </h3>
+        <div className="w-full overflow-x-auto pb-4 hide-scrollbar flex justify-center">
+          <div className="w-max px-4">
+            <a 
+              href="https://github.com/Garridoparrayeray" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="block hover:opacity-80 transition-opacity cursor-pointer" 
+              aria-label={t('header.githubAria')}
+            >
+              <GitHubCalendar
+                username="Garridoparrayeray"
+                colorScheme="light"
+                fontSize={12}
+                blockSize={12}
+                blockMargin={4}
+                transformData={(contributions) => {
+                  const startDate = new Date('2025-10-01').getTime();
+                  return contributions.filter(day => new Date(day.date).getTime() >= startDate);
+                }}
+              />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto w-full text-center flex-1 flex flex-col justify-center">
+        <h2 ref={textRef} className="font-display text-[15vw] md:text-[10vw] leading-[0.85] uppercase mb-12 perspective-1000">
+          <div className="overflow-hidden"><div className="reveal-line origin-bottom">{t('contact.title1')}</div></div>
+          <div className="overflow-hidden"><div className="reveal-line origin-bottom text-black">{t('contact.title2')}</div></div>
+        </h2>
+
+        <div className="flex flex-col md:flex-row gap-4 justify-center mt-8 md:mt-12 max-w-2xl mx-auto w-full">
+          <a href="mailto:garridoparrayeraytx@gmail.com" className="flex-1 flex group w-full cursor-pointer" aria-label={t('header.emailAria')}>
+            <div className="bg-black border border-black w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white group-hover:text-black transition-colors duration-300">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div className="bg-white border border-black flex-1 flex items-center justify-center font-sans font-bold text-black text-sm md:text-lg tracking-widest uppercase group-hover:bg-black group-hover:text-white transition-colors duration-300">
+              {t('contact.email')}
+            </div>
+          </a>
+          <a href="https://www.linkedin.com/in/yeray-garrido-parra" target="_blank" rel="noreferrer" className="flex-1 flex group w-full cursor-pointer" aria-label={t('header.linkedinAria')}>
+            <div className="bg-black border border-black w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white group-hover:text-black transition-colors duration-300">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </div>
+            <div className="bg-white border border-black flex-1 flex items-center justify-center font-sans font-bold text-black text-sm md:text-lg tracking-widest uppercase group-hover:bg-black group-hover:text-white transition-colors duration-300">
+              {t('contact.linkedin')}
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+## GitHub Calendar Integration
+
+### Library
+
+<ParamField path="react-github-calendar" type="npm package">
+  Third-party component for rendering GitHub contribution graphs
+</ParamField>
+
+### Configuration
+
+```tsx
+<GitHubCalendar
+  username="Garridoparrayeray"
+  colorScheme="light"
+  fontSize={12}
+  blockSize={12}
+  blockMargin={4}
+  transformData={(contributions) => {
+    const startDate = new Date('2025-10-01').getTime();
+    return contributions.filter(day => new Date(day.date).getTime() >= startDate);
+  }}
+/>
+```
+
+<ParamField path="username" type="string">
+  GitHub username to fetch contribution data
+</ParamField>
+
+<ParamField path="colorScheme" type="light">
+  Uses light theme (inverted from portfolio dark theme)
+</ParamField>
+
+<ParamField path="fontSize" type="12">
+  Text size for month labels
+</ParamField>
+
+<ParamField path="blockSize" type="12">
+  Size of each contribution square in pixels
+</ParamField>
+
+<ParamField path="blockMargin" type="4">
+  Gap between contribution squares
+</ParamField>
+
+### Date Filtering
+
+The `transformData` function filters contributions to only show activity from October 1, 2025 onward:
+
+```typescript
+transformData={(contributions) => {
+  const startDate = new Date('2025-10-01').getTime();
+  return contributions.filter(day => new Date(day.date).getTime() >= startDate);
+}}
+```
+
+## Text Reveal Animation
+
+<CodeGroup>
+
+```typescript IntersectionObserver Setup
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.reveal-line').forEach((el, i) => {
+        (el as HTMLElement).style.transitionDelay = `${i * 0.2}s`;  // 200ms per line
+        el.classList.add('in-view');
+      });
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });  // Trigger when 20% visible
+```
+
+```tsx Heading Structure
+<h2 ref={textRef} className="font-display text-[15vw] md:text-[10vw] leading-[0.85] uppercase mb-12 perspective-1000">
+  <div className="overflow-hidden">
+    <div className="reveal-line origin-bottom">{t('contact.title1')}</div>
+  </div>
+  <div className="overflow-hidden">
+    <div className="reveal-line origin-bottom text-black">{t('contact.title2')}</div>
+  </div>
+</h2>
+```
+
+</CodeGroup>
+
+Each line is wrapped in two divs:
+1. Outer div with `overflow-hidden` (clip region)
+2. Inner div with `reveal-line` class (animated element)
+
+### Expected CSS
+
+```css
+.reveal-line {
+  opacity: 0;
+  transform: translateY(100%) rotateX(-90deg);
+  transition: opacity 0.8s, transform 0.8s;
+}
+
+.reveal-line.in-view {
+  opacity: 1;
+  transform: translateY(0) rotateX(0);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+```
+
+The `perspective-1000` class on the parent enables 3D transform perspective.
+
+## CTA Button Layout
+
+<CodeGroup>
+
+```tsx Email Button
+<a 
+  href="mailto:garridoparrayeraytx@gmail.com" 
+  className="flex-1 flex group w-full cursor-pointer" 
+  aria-label={t('header.emailAria')}
+>
+  <div className="bg-black border border-black w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors duration-300">
+    <svg className="text-white group-hover:text-black transition-colors duration-300">
+      {/* Mail icon */}
+    </svg>
+  </div>
+  <div className="bg-white border border-black flex-1 flex items-center justify-center font-sans font-bold text-black text-sm md:text-lg tracking-widest uppercase group-hover:bg-black group-hover:text-white transition-colors duration-300">
+    {t('contact.email')}
+  </div>
+</a>
+```
+
+```tsx LinkedIn Button
+<a 
+  href="https://www.linkedin.com/in/yeray-garrido-parra" 
+  target="_blank" 
+  rel="noreferrer" 
+  className="flex-1 flex group w-full cursor-pointer" 
+  aria-label={t('header.linkedinAria')}
+>
+  <div className="bg-black border border-black w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors duration-300">
+    <svg className="text-white group-hover:text-black transition-colors duration-300">
+      {/* LinkedIn icon */}
+    </svg>
+  </div>
+  <div className="bg-white border border-black flex-1 flex items-center justify-center font-sans font-bold text-black text-sm md:text-lg tracking-widest uppercase group-hover:bg-black group-hover:text-white transition-colors duration-300">
+    {t('contact.linkedin')}
+  </div>
+</a>
+```
+
+</CodeGroup>
+
+### Button Structure
+
+1. **Icon box** (left): Black background, white icon, fixed width
+2. **Text area** (right): White background, black text, flexible width
+3. **Hover state**: Colors invert on both sections
+
+## Responsive Calendar
+
+```tsx
+<div className="w-full overflow-x-auto pb-4 hide-scrollbar flex justify-center">
+  <div className="w-max px-4">
+    <a href="https://github.com/Garridoparrayeray" ...>
+      <GitHubCalendar ... />
+    </a>
+  </div>
+</div>
+```
+
+- `overflow-x-auto`: Enables horizontal scrolling on small screens
+- `hide-scrollbar`: Custom class to hide scrollbar visually
+- `w-max`: Calendar maintains natural width
+- `flex justify-center`: Centers calendar when it fits
+
+## Color Inversion
+
+Unlike other sections, Contact uses an inverted color scheme:
+
+<ParamField path="Background" type="bg-white">
+  White background instead of black
+</ParamField>
+
+<ParamField path="Text" type="text-black">
+  Black text instead of white
+</ParamField>
+
+<ParamField path="Calendar" type="light">
+  Light color scheme to match white background
+</ParamField>
+
+This creates visual separation and draws attention to the call-to-action.
+
+## Internationalization
+
+All user-facing text is internationalized:
+
+```typescript
+t('contact.github')      // "GitHub Activity"
+t('contact.title1')      // "LET'S WORK"
+t('contact.title2')      // "TOGETHER"
+t('contact.email')       // "EMAIL"
+t('contact.linkedin')    // "LINKEDIN"
+t('header.emailAria')    // Aria label for email
+t('header.linkedinAria') // Aria label for LinkedIn
+t('header.githubAria')   // Aria label for GitHub
+```
+
+## Social Links
+
+<ParamField path="Email" type="mailto">
+  garridoparrayeraytx@gmail.com
+</ParamField>
+
+<ParamField path="LinkedIn" type="URL">
+  https://www.linkedin.com/in/yeray-garrido-parra
+</ParamField>
+
+<ParamField path="GitHub" type="URL">
+  https://github.com/Garridoparrayeray
+</ParamField>
+
+## Accessibility
+
+- `aria-label` on all icon-only and interactive elements
+- Semantic HTML structure
+- Proper link attributes (`target="_blank"`, `rel="noreferrer"`)
+- Adequate color contrast (black on white)
+- Focus states via Tailwind defaults
+
+## Dependencies
+
+<ParamField path="react-github-calendar" type="library">
+  Renders GitHub contribution calendar
+</ParamField>
+
+<ParamField path="useLanguage" type="context">
+  Translation context for internationalized strings
+</ParamField>
+
+<ParamField path="IntersectionObserver" type="Web API">
+  Native browser API for scroll-based animation triggers
+</ParamField>
+
+## Performance Considerations
+
+- GitHub calendar data fetched by library (external API call)
+- IntersectionObserver auto-disconnects after animation
+- Horizontal scroll for calendar prevents layout issues on mobile
+- Lazy hover effects with CSS transitions
+
+## Source Location
+
+`~/workspace/source/src/components/Contact.tsx`

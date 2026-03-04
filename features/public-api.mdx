@@ -1,0 +1,405 @@
+---
+title: Public API
+description: Consumable CV endpoints in XML, JSON, and TXT formats for developers and recruiters
+---
+
+The portfolio exposes a public API that provides programmatic access to Yeray's CV data in multiple formats. This developer-friendly feature allows technical recruiters and developers to consume CV data directly from the terminal without downloading PDF files.
+
+## Available Endpoints
+
+Three file formats are available in the `/public` directory:
+
+<CardGroup cols={3}>
+  <Card title="XML Format" icon="code" href="https://yeraygarrido.dev/cv.xml">
+    Structured, hierarchical data format
+  </Card>
+  
+  <Card title="JSON Format" icon="brackets-curly" href="https://yeraygarrido.dev/cv.json">
+    Developer-friendly, easily parseable
+  </Card>
+  
+  <Card title="Plain Text" icon="file-lines" href="https://yeraygarrido.dev/cv.txt">
+    Human-readable terminal output
+  </Card>
+</CardGroup>
+
+## File Structure
+
+All CV files are located in the `/public` directory:
+
+```
+public/
+├── cv.xml      (2,029 bytes)
+├── cv.json     (1,657 bytes)
+└── cv.txt      (1,587 bytes)
+```
+
+These static files are served directly by the web server without processing.
+
+## XML Format
+
+The XML endpoint returns a well-structured CV document:
+
+```bash
+curl -L https://yeraygarrido.dev/cv.xml
+```
+
+### XML Structure
+
+```xml /public/cv.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<resume>
+    <header>
+        <name>Yeray Garrido</name>
+        <title>Full Stack Developer &amp; Backend Specialist</title>
+    </header>
+    <contact>
+        <email>garridoparrayeraytx@gmail.com</email>
+        <github>https://github.com/Garridoparrayeray</github>
+        <location>Spain</location>
+    </contact>
+    <about>Software Engineer and Full Stack Developer specializing in PHP, Java, MySQL, and custom WordPress (_s). I build scalable, optimized, and custom web solutions.</about>
+    <tech_stack>
+        <backend>Java, PHP, MySQL</backend>
+        <frontend>JavaScript, HTML5, CSS3</frontend>
+        <tools>Git, Figma</tools>
+        <cms>WordPress (Custom Themes &amp; Plugins)</cms>
+    </tech_stack>
+    <experience>
+        <job>
+            <role>Freelance Full Stack Developer &amp; DAW Student</role>
+            <company>Self-Employed / Vocational Training</company>
+            <date>2023 - Present</date>
+            <description>Currently pursuing a Higher Degree in Web Application Development (DAW) while working as a freelance developer. Building custom web apps, robust backends in PHP/Java, and custom WordPress themes.</description>
+        </job>
+        <job>
+            <role>Level 3 Professional Certificate</role>
+            <company>Web Application Development</company>
+            <date>Completed</date>
+            <description>Official certification in frontend and backend development, database management, and web application deployment.</description>
+        </job>
+        <job>
+            <role>Software Engineering Student</role>
+            <company>42 Urduliz (Fundación Telefónica)</company>
+            <date>1 Year Program</date>
+            <description>Peer-to-peer methodology with no teachers. Focused on C programming, algorithms, memory management, and system architecture fundamentals.</description>
+        </job>
+    </experience>
+    <quote>Code is like humor. When you have to explain it, it's bad.</quote>
+</resume>
+```
+
+<Note>
+  XML is ideal for systems that require strict schema validation or XSLT transformations.
+</Note>
+
+## JSON Format
+
+The JSON endpoint provides developer-friendly structured data:
+
+```bash
+curl -L https://yeraygarrido.dev/cv.json
+```
+
+### JSON Structure
+
+```json /public/cv.json
+{
+  "name": "Yeray Garrido",
+  "title": "Full Stack Developer & Backend Specialist",
+  "contact": {
+    "email": "garridoparrayeraytx@gmail.com",
+    "github": "https://github.com/Garridoparrayeray",
+    "location": "Spain"
+  },
+  "about": "Software Engineer and Full Stack Developer specializing in PHP, Java, MySQL, and custom WordPress (_s). I build scalable, optimized, and custom web solutions.",
+  "tech_stack": {
+    "backend": ["Java", "PHP", "MySQL"],
+    "frontend": ["JavaScript", "HTML5", "CSS3"],
+    "tools": ["Git", "Figma"],
+    "cms": ["WordPress (Custom Themes & Plugins)"]
+  },
+  "experience": [
+    {
+      "role": "Freelance Full Stack Developer & DAW Student",
+      "company": "Self-Employed / Vocational Training",
+      "date": "2023 - Present",
+      "description": "Currently pursuing a Higher Degree in Web Application Development (DAW) while working as a freelance developer. Building custom web apps, robust backends in PHP/Java, and custom WordPress themes."
+    },
+    {
+      "role": "Level 3 Professional Certificate",
+      "company": "Web Application Development",
+      "date": "Completed",
+      "description": "Official certification in frontend and backend development, database management, and web application deployment."
+    },
+    {
+      "role": "Software Engineering Student",
+      "company": "42 Urduliz (Fundación Telefónica)",
+      "date": "1 Year Program",
+      "description": "Peer-to-peer methodology with no teachers. Focused on C programming, algorithms, memory management, and system architecture fundamentals."
+    }
+  ],
+  "quote": "Code is like humor. When you have to explain it, it's bad."
+}
+```
+
+### Example: Parse JSON with jq
+
+```bash
+curl -sL https://yeraygarrido.dev/cv.json | jq '.tech_stack.backend[]'
+# Output:
+# "Java"
+# "PHP"
+# "MySQL"
+```
+
+## Plain Text Format
+
+The TXT endpoint provides a human-readable format optimized for terminal viewing:
+
+```bash
+curl -L https://yeraygarrido.dev/cv.txt
+```
+
+<Tip>
+  The plain text format is ideal for quick terminal viewing or piping into other command-line tools.
+</Tip>
+
+## ApiSection Component
+
+The website features a dedicated section showcasing the API with a terminal-style demo:
+
+```tsx src/components/ApiSection.tsx
+import { useEffect, useRef, useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+
+export default function ApiSection() {
+  const { t } = useLanguage();
+  const [copied, setCopied] = useState(false);
+  
+  const command = "curl -L https://yeraygarrido.dev/cv.xml";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(command);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <section className="py-24 md:py-32 px-6 md:px-12 bg-black text-white">
+      <div className="max-w-4xl mx-auto flex items-center gap-12">
+        <div className="flex-1">
+          <h2 className="font-wide text-3xl md:text-4xl font-bold uppercase">
+            {t('api.title')}
+          </h2>
+          <p className="text-white/60 text-lg leading-relaxed mb-8">
+            {t('api.desc')}
+          </p>
+        </div>
+        <div className="flex-1">
+          <div className="bg-[#1e1e1e] rounded-lg border border-white/10">
+            {/* Terminal header with traffic lights */}
+            <div className="flex items-center justify-between px-4 py-3 bg-[#2d2d2d]">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              </div>
+              <span className="font-mono text-xs text-white/50">xml</span>
+            </div>
+            {/* Command display with copy button */}
+            <div className="p-6 flex items-center justify-between gap-4">
+              <code className="font-mono text-sm md:text-base text-green-400">
+                <span className="text-white/50 select-none">$ </span>{command}
+              </code>
+              <button onClick={handleCopy}>
+                {/* Copy icon toggles to checkmark on success */}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+### Component Features
+
+<AccordionGroup>
+  <Accordion title="Terminal-Style UI">
+    Mimics a terminal window with:
+    - macOS-style traffic light buttons (red, yellow, green)
+    - Dark background (`#1e1e1e`) matching VS Code's default theme
+    - Monospace font for command display
+    - Shell prompt indicator (`$`)
+  </Accordion>
+  
+  <Accordion title="Copy-to-Clipboard">
+    One-click copy functionality:
+    - Uses `navigator.clipboard.writeText()`
+    - Visual feedback with icon swap (copy → checkmark)
+    - Auto-resets after 2 seconds
+  </Accordion>
+  
+  <Accordion title="Internationalized Content">
+    Supports all three languages (en, es, eu):
+    - `api.title`: Section heading
+    - `api.desc`: Description text explaining the API's purpose
+  </Accordion>
+  
+  <Accordion title="Intersection Observer Animation">
+    Fade-in animation when section enters viewport:
+    ```tsx
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { 
+          e.target.classList.add('in-view'); 
+          io.unobserve(e.target); 
+        }
+      });
+    }, { threshold: 0.1 });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Usage Examples
+
+<Tabs>
+  <Tab title="Fetch All Data">
+    ```bash
+    # Get complete CV as JSON
+    curl -sL https://yeraygarrido.dev/cv.json
+    ```
+  </Tab>
+  
+  <Tab title="Extract Specific Fields">
+    ```bash
+    # Get name and email using jq
+    curl -sL https://yeraygarrido.dev/cv.json | \
+      jq '{name: .name, email: .contact.email}'
+    
+    # Output:
+    # {
+    #   "name": "Yeray Garrido",
+    #   "email": "garridoparrayeraytx@gmail.com"
+    # }
+    ```
+  </Tab>
+  
+  <Tab title="Parse with XMLStarlet">
+    ```bash
+    # Extract email from XML
+    curl -sL https://yeraygarrido.dev/cv.xml | \
+      xmlstarlet sel -t -v "//contact/email"
+    
+    # Output: garridoparrayeraytx@gmail.com
+    ```
+  </Tab>
+  
+  <Tab title="Download and Save">
+    ```bash
+    # Download all formats
+    curl -O https://yeraygarrido.dev/cv.{xml,json,txt}
+    
+    # Creates:
+    # cv.xml
+    # cv.json
+    # cv.txt
+    ```
+  </Tab>
+</Tabs>
+
+## Data Structure
+
+All formats contain the following data:
+
+<ParamField path="name" type="string">
+  Full name: "Yeray Garrido"
+</ParamField>
+
+<ParamField path="title" type="string">
+  Professional title: "Full Stack Developer & Backend Specialist"
+</ParamField>
+
+<ParamField path="contact" type="object">
+  Contact information object:
+  - `email`: Email address
+  - `github`: GitHub profile URL
+  - `location`: Geographic location
+</ParamField>
+
+<ParamField path="about" type="string">
+  Professional summary paragraph
+</ParamField>
+
+<ParamField path="tech_stack" type="object">
+  Technology stack categorized by:
+  - `backend`: Backend technologies
+  - `frontend`: Frontend technologies
+  - `tools`: Development tools
+  - `cms`: Content management systems
+</ParamField>
+
+<ParamField path="experience" type="array">
+  Array of job/education objects, each containing:
+  - `role`: Position or program name
+  - `company`: Company or institution
+  - `date`: Time period
+  - `description`: Detailed description
+</ParamField>
+
+<ParamField path="quote" type="string">
+  Professional quote or motto
+</ParamField>
+
+## Why a Public API?
+
+<CardGroup cols={2}>
+  <Card title="Developer-Friendly" icon="code">
+    Technical recruiters and developers can consume data programmatically without manual downloads
+  </Card>
+  
+  <Card title="Machine-Readable" icon="robot">
+    Structured formats (JSON, XML) enable automated parsing and integration
+  </Card>
+  
+  <Card title="Version Control" icon="code-branch">
+    CV data lives in Git, allowing version tracking and updates
+  </Card>
+  
+  <Card title="Unique Differentiator" icon="star">
+    Demonstrates technical thinking and developer-first mindset
+  </Card>
+</CardGroup>
+
+## SEO and Discovery
+
+The API is prominently featured on the portfolio with:
+- Dedicated section above the footer
+- Eye-catching terminal UI
+- Clear call-to-action for technical users
+- Translated descriptions in three languages
+
+<Info>
+  This feature has proven to be a conversation starter in technical interviews, showcasing creativity and technical depth.
+</Info>
+
+## Rate Limiting and Caching
+
+- **No authentication required**: Endpoints are public
+- **No rate limiting**: Static files served by CDN
+- **Cache headers**: Files cached for optimal performance
+- **CORS enabled**: Can be fetched from any origin
+
+## Future Enhancements
+
+Potential additions to the API:
+- YAML format for DevOps-focused users
+- RSS feed for portfolio updates
+- Markdown format for README embedding
+- GraphQL endpoint for selective field queries
+
+<Tip>
+  Try it yourself: Open your terminal and run `curl -L https://yeraygarrido.dev/cv.xml` to see the API in action!
+</Tip>

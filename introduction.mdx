@@ -1,0 +1,170 @@
+---
+title: Introduction
+description: A performance-optimized React portfolio showcasing full-stack development skills with custom GSAP animations and technical SEO
+---
+
+## What is this project?
+
+This is a personal portfolio website for Yeray Garrido, a full-stack software engineer. It's a custom-built Single Page Application (SPA) designed to showcase frontend engineering best practices, technical SEO, and Web Performance Optimization (WPO).
+
+The portfolio achieves perfect Lighthouse scores on both mobile and desktop by prioritizing a zero-blocking critical rendering path and implementing advanced performance optimization techniques.
+
+<Note>
+  This is **not a template**. It's a production portfolio built with performance and user experience as top priorities. The codebase is MIT licensed, but the content (texts, images, CV data) is copyrighted.
+</Note>
+
+## Key technologies
+
+The portfolio is built with a carefully selected tech stack optimized for performance:
+
+<CardGroup cols={2}>
+  <Card title="React 19" icon="react">
+    Latest React with concurrent features and improved Suspense boundaries for optimal code splitting
+  </Card>
+  <Card title="Vite 6" icon="bolt">
+    Lightning-fast dev server and optimized production builds with Terser minification
+  </Card>
+  <Card title="GSAP 3.14" icon="wand-magic-sparkles">
+    Professional-grade animations with ScrollTrigger for scroll-driven effects
+  </Card>
+  <Card title="Tailwind CSS v4" icon="paintbrush">
+    Utility-first CSS framework for brutalist, responsive design
+  </Card>
+</CardGroup>
+
+### Additional libraries
+
+- **Lenis**: Smooth scrolling library with momentum-based easing
+- **React Context**: Custom internationalization system for English, Spanish, and Basque
+- **Vercel Analytics**: Performance monitoring and speed insights
+- **Microsoft Clarity**: User behavior analytics
+
+## Project structure
+
+The portfolio follows a modular architecture with clear separation of concerns:
+
+```plaintext
+├── /public              # Static assets and public API endpoints
+│   ├── cv.xml          # Public CV endpoint (XML)
+│   ├── cv.json         # Public CV endpoint (JSON)
+│   ├── cv.txt          # Public CV endpoint (plain text)
+│   ├── /img            # Images and graphics
+│   └── /fonts          # Custom web fonts
+├── /src
+│   ├── /components     # Modular UI components
+│   │   ├── Header.tsx
+│   │   ├── Hero.tsx
+│   │   ├── InteractiveCanvas.tsx
+│   │   ├── Experience.tsx
+│   │   ├── Stack.tsx
+│   │   ├── Projects.tsx
+│   │   ├── Contact.tsx
+│   │   └── Footer.tsx
+│   ├── /context        # Global state management
+│   │   └── LanguageContext.tsx
+│   ├── App.tsx         # Main app with lazy loading
+│   └── main.tsx        # Entry point
+├── vite.config.ts      # Build configuration
+└── package.json        # Dependencies and scripts
+```
+
+## Main sections
+
+The portfolio is organized into distinct sections, each serving a specific purpose:
+
+### Hero section
+Full-screen introduction with animated text reveal using GSAP character stagger effects and ScrollTrigger parallax scrolling.
+
+### Experience section
+Vertical timeline showcasing work experience and education with IntersectionObserver reveal animations.
+
+### Tech stack section
+Grid display of technologies with icon hover effects and responsive layout (2/3/5 columns).
+
+### Projects section
+Horizontal scrolling gallery with project cards, detailed modals, and GitHub integration.
+
+### Stats section
+GitHub contribution calendar and activity metrics using react-github-calendar.
+
+### API section
+Terminal-style showcase of the public CV API with copy-to-clipboard functionality.
+
+### Contact section
+Social links and call-to-action buttons with inverted color scheme on hover.
+
+## Performance highlights
+
+The portfolio implements several advanced performance optimization techniques:
+
+<CardGroup cols={2}>
+  <Card title="Lazy loading" icon="rocket">
+    React.lazy() and Suspense for code splitting with interaction-triggered loading
+  </Card>
+  <Card title="GPU acceleration" icon="microchip">
+    GSAP animations use transform and willChange for 60fps performance
+  </Card>
+  <Card title="Code splitting" icon="scissors">
+    Manual chunks for vendor code with separate bundle for react-github-calendar
+  </Card>
+  <Card title="Smooth scrolling" icon="arrows-up-down">
+    Lenis integration with GSAP ticker for synchronized scroll animations
+  </Card>
+</CardGroup>
+
+### Core Web Vitals optimization
+
+- **LCP (Largest Contentful Paint)**: Optimized with font preloading and critical CSS inlining
+- **FID (First Input Delay)**: Minimized with deferred analytics and interaction-triggered loading
+- **CLS (Cumulative Layout Shift)**: Prevented with useLayoutEffect for animation setup
+- **TTI (Time to Interactive)**: Improved with lazy loading and minimal initial bundle
+
+## Multi-language support
+
+The portfolio supports three languages without page reloads or URL parameters:
+
+- 🇬🇧 **English** (en)
+- 🇪🇸 **Spanish** (es)
+- 🇪🇺 **Basque** (eu)
+
+Language switching updates:
+- All UI text via translation function
+- Document title and meta descriptions
+- Open Graph tags for social sharing
+- `html[lang]` attribute for accessibility
+
+<Tip>
+  The internationalization system is implemented with React Context and doesn't require external libraries or route changes.
+</Tip>
+
+## Public CV API
+
+One unique feature is the public CV API that allows developers and recruiters to consume CV data programmatically:
+
+```bash Terminal
+curl -L https://yeraygarrido.dev/cv.xml
+```
+
+Available formats:
+- **XML**: Structured data with all fields
+- **JSON**: Machine-readable format
+- **TXT**: Plain text version
+
+Learn more in the [Public API documentation](/features/public-api).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Getting started" icon="play" href="/getting-started">
+    Set up the project locally and start exploring the codebase
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture/project-structure">
+    Deep dive into the project structure and design decisions
+  </Card>
+  <Card title="Components" icon="puzzle-piece" href="/components/hero">
+    Explore the modular React components and their implementations
+  </Card>
+  <Card title="Performance" icon="gauge-high" href="/architecture/performance-optimization">
+    Learn about the optimization strategies and techniques used
+  </Card>
+</CardGroup>

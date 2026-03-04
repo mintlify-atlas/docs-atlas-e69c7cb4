@@ -1,0 +1,395 @@
+---
+title: Project structure
+description: Understand the directory organization and key files in the portfolio codebase
+---
+
+## Directory overview
+
+The project follows a clean, modular structure optimized for performance and maintainability:
+
+```plaintext
+yeraygarrido.dev/
+├── public/                 # Static assets served directly
+│   ├── cv.xml              # Public CV API (XML format)
+│   ├── cv.json             # Public CV API (JSON format)
+│   ├── cv.txt              # Public CV API (plain text)
+│   ├── CV_YerayGarrido_en.pdf
+│   ├── CV_YerayGarrido_es.pdf
+│   ├── CV_YerayGarrido_eu.pdf
+│   ├── img/                # Images and graphics
+│   ├── fonts/              # Custom web fonts
+│   ├── sitemap.xml
+│   ├── robots.txt
+│   └── og-image.webp
+├── src/
+│   ├── components/         # React components
+│   │   ├── Header.tsx
+│   │   ├── Hero.tsx
+│   │   ├── InteractiveCanvas.tsx
+│   │   ├── Intro.tsx
+│   │   ├── Experience.tsx
+│   │   ├── Stack.tsx
+│   │   ├── Projects.tsx
+│   │   ├── Stats.tsx
+│   │   ├── ApiSection.tsx
+│   │   ├── Contact.tsx
+│   │   ├── Footer.tsx
+│   │   └── Cookie-Banner.tsx
+│   ├── context/            # Global state management
+│   │   └── LanguageContext.tsx
+│   ├── App.tsx             # Main application component
+│   ├── main.tsx            # Application entry point
+│   └── index.css           # Global styles and Tailwind
+├── vite.config.ts          # Vite build configuration
+├── tsconfig.json           # TypeScript configuration
+├── tailwind.config.js      # Tailwind CSS configuration
+└── package.json            # Dependencies and scripts
+```
+
+## Key directories
+
+### `/public` directory
+
+Contains all static assets that are served directly without processing:
+
+<CardGroup cols={2}>
+  <Card title="CV API endpoints" icon="file-code">
+    XML, JSON, and TXT versions of the CV for programmatic access
+  </Card>
+  <Card title="PDF resumes" icon="file-pdf">
+    Downloadable CV files in three languages (English, Spanish, Basque)
+  </Card>
+  <Card title="Images" icon="image">
+    Optimized images in WebP format for fast loading
+  </Card>
+  <Card title="SEO files" icon="search">
+    sitemap.xml, robots.txt, and Open Graph images
+  </Card>
+</CardGroup>
+
+<Note>
+  Files in `/public` are served at the root path. For example, `public/cv.xml` is accessible at `/cv.xml`.
+</Note>
+
+### `/src/components` directory
+
+Modular, self-contained React components with clear responsibilities:
+
+<Accordion title="Header.tsx">
+  Fixed navigation header with:
+  - Language switcher (ES/EN/EU)
+  - Social links (GitHub, LinkedIn, Email)
+  - Scroll-based background opacity transition
+  - Accessibility attributes for screen readers
+</Accordion>
+
+<Accordion title="Hero.tsx">
+  Full-screen hero section with:
+  - GSAP character-by-character text animation
+  - ScrollTrigger parallax effect
+  - useLayoutEffect for FOUC prevention
+  - Download CV buttons with language-specific PDFs
+</Accordion>
+
+<Accordion title="InteractiveCanvas.tsx">
+  HTML5 Canvas background animation with:
+  - 100 floating particles with random motion
+  - requestAnimationFrame loop for 60fps
+  - Memory leak prevention on unmount
+</Accordion>
+
+<Accordion title="Intro.tsx">
+  Introduction section with:
+  - IntersectionObserver reveal animations
+  - Feature cards with icons
+  - Responsive grid layout
+</Accordion>
+
+<Accordion title="Experience.tsx">
+  Work experience and education timeline with:
+  - Vertical timeline with dots
+  - Staggered reveal animations
+  - Hover effects on timeline items
+</Accordion>
+
+<Accordion title="Stack.tsx">
+  Technology stack grid with:
+  - Icon loading from Devicon CDN
+  - Grayscale to color on hover
+  - Responsive columns (2/3/5)
+  - Intersection Observer for staggered reveals
+</Accordion>
+
+<Accordion title="Projects.tsx">
+  Project showcase with:
+  - Horizontal scrolling gallery (29KB component)
+  - Detailed modal views
+  - GitHub API integration
+  - Scroll indicators
+</Accordion>
+
+<Accordion title="Stats.tsx">
+  GitHub statistics with:
+  - Contribution calendar using react-github-calendar
+  - Activity metrics
+  - Responsive layout
+</Accordion>
+
+<Accordion title="ApiSection.tsx">
+  Public API showcase with:
+  - Terminal-style UI
+  - Copy-to-clipboard functionality
+  - Example curl command
+</Accordion>
+
+<Accordion title="Contact.tsx">
+  Contact section with:
+  - Social CTA buttons
+  - Inverted color scheme on hover
+  - Email and LinkedIn links
+</Accordion>
+
+<Accordion title="Footer.tsx">
+  Site footer with:
+  - Copyright information
+  - Additional navigation links
+  - Social media icons
+</Accordion>
+
+### `/src/context` directory
+
+Global state management using React Context:
+
+**LanguageContext.tsx** (308 lines)
+
+Provides internationalization functionality:
+- Language state (en/es/eu)
+- Translation function with parameter interpolation
+- Complete translation objects for all three languages
+- Dynamic SEO metadata updates
+- Automatic `html[lang]` attribute management
+
+Learn more in [Internationalization documentation](/features/internationalization).
+
+## Key files
+
+### Entry points
+
+#### `src/main.tsx`
+
+Application entry point that:
+- Imports global CSS
+- Renders the root React component
+- Mounts to the DOM element with id "root"
+
+```typescript src/main.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+#### `src/App.tsx`
+
+Main application component (90 lines) that:
+- Sets up Lenis smooth scrolling
+- Registers GSAP plugins (ScrollTrigger)
+- Implements lazy loading with React.lazy() and Suspense
+- Manages interaction-triggered loading with `loadRest` state
+- Integrates analytics (Vercel, Microsoft Clarity)
+
+```typescript src/App.tsx (excerpt)
+import React, { useEffect, Suspense, lazy } from "react";
+import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { LanguageProvider } from "./context/LanguageContext";
+
+import InteractiveCanvas from "./components/InteractiveCanvas";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+
+// Lazy-loaded components
+const Intro = lazy(() => import("./components/Intro"));
+const Experience = lazy(() => import("./components/Experience"));
+const Stack = lazy(() => import("./components/Stack"));
+const Projects = lazy(() => import("./components/Projects"));
+const Stats = lazy(() => import("./components/Stats"));
+const ApiSection = lazy(() => import("./components/ApiSection"));
+const Contact = lazy(() => import("./components/Contact"));
+const Footer = lazy(() => import("./components/Footer"));
+
+gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true });
+
+export default function App() {
+  const [loadRest, setLoadRest] = React.useState(false);
+  // ... (see full implementation in App.tsx)
+}
+```
+
+Learn more in [Lazy Loading documentation](/features/lazy-loading).
+
+### Configuration files
+
+#### `vite.config.ts`
+
+Vite build configuration (47 lines) with:
+- React plugin for Fast Refresh
+- Tailwind CSS v4 integration
+- CSS injection plugin for Tailwind v4 compatibility
+- Terser minification (removes console and debugger)
+- Manual chunks for vendor code splitting
+- Path aliases (`@` points to root)
+- HMR control via environment variable
+
+```typescript vite.config.ts
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '');
+
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      cssInjectedByJsPlugin(),
+    ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
+      },
+    },
+    build: {
+      cssCodeSplit: true,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react-github-calendar')) return 'vendor-github';
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
+    server: {
+      hmr: process.env.DISABLE_HMR !== 'true',
+    },
+  };
+});
+```
+
+Learn more in [Building documentation](/development/building).
+
+#### `package.json`
+
+Defines project metadata, dependencies, and scripts:
+
+```json package.json
+{
+  "name": "yeraygarrido-dev",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port=3000 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "lint": "tsc --noEmit"
+  }
+}
+```
+
+<Info>
+  The `dev` script binds to `0.0.0.0` to allow network access from other devices (mobile testing).
+</Info>
+
+#### `tsconfig.json`
+
+TypeScript compiler configuration with:
+- Target: ES2020
+- Module: ESNext
+- Strict mode enabled
+- React JSX runtime
+- Path resolution for `@` alias
+
+## Component loading strategy
+
+Components are split into two groups:
+
+### Immediately loaded (critical path)
+
+<CardGroup cols={3}>
+  <Card title="InteractiveCanvas" icon="palette">
+    Background animation for visual appeal
+  </Card>
+  <Card title="Header" icon="bars">
+    Navigation and language switcher
+  </Card>
+  <Card title="Hero" icon="star">
+    First screen with animated title
+  </Card>
+</CardGroup>
+
+### Lazy loaded (deferred)
+
+All other components are loaded after:
+1. User interaction (scroll, mousemove, touchstart)
+2. OR 2.5 second timeout
+
+This strategy minimizes Time to Interactive (TTI) and improves Core Web Vitals scores.
+
+## Build output
+
+After running `npm run build`, the `dist/` directory contains:
+
+```plaintext
+dist/
+├── index.html              # Entry HTML file
+├── assets/
+│   ├── index-[hash].js     # Main application bundle
+│   ├── vendor-[hash].js    # Vendor dependencies
+│   ├── vendor-github-[hash].js  # react-github-calendar
+│   └── index-[hash].css    # Compiled Tailwind CSS
+└── [public files]          # Copied from /public
+```
+
+<Tip>
+  File names include content hashes for cache busting. When you update the code, new hashes are generated, forcing browsers to download fresh assets.
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Performance optimization" icon="gauge-high" href="/architecture/performance-optimization">
+    Learn about lazy loading, code splitting, and Core Web Vitals optimization
+  </Card>
+  <Card title="Animation system" icon="wand-magic-sparkles" href="/architecture/animation-system">
+    Understand GSAP implementation and ScrollTrigger integration
+  </Card>
+  <Card title="Components" icon="puzzle-piece" href="/components/hero">
+    Explore individual component implementations
+  </Card>
+  <Card title="Customization" icon="palette" href="/development/customization">
+    Learn how to customize the portfolio for your own use
+  </Card>
+</CardGroup>

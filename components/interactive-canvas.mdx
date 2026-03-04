@@ -1,0 +1,256 @@
+---
+title: InteractiveCanvas
+description: Animated canvas background with floating particle effects
+---
+
+The InteractiveCanvas component creates an ambient animated background using HTML5 Canvas, featuring floating particles that create a subtle, atmospheric effect across the viewport.
+
+## Features
+
+- **Particle system** with 100 floating particles
+- **Randomized properties** (position, size, speed, opacity)
+- **Continuous animation loop** using requestAnimationFrame
+- **Automatic cleanup** to prevent memory leaks
+- **Responsive canvas** that resizes with the window
+- **Non-interactive overlay** (pointer-events: none)
+
+## Visual Appearance
+
+The canvas displays 100 white circular particles of varying sizes (0.5-2px) and opacity (0.1-0.6) that float upward at different speeds (0.1-0.6px per frame). When particles reach the top of the viewport, they respawn at the bottom with a new random x-position.
+
+## Component Code
+
+```tsx
+import { useEffect, useRef } from 'react';
+
+export default function InteractiveCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const particles: { x: number; y: number; size: number; speedY: number; opacity: number }[] = [];
+    const numParticles = 100;
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 1.5 + 0.5,
+        speedY: Math.random() * 0.5 + 0.1,
+        opacity: Math.random() * 0.5 + 0.1,
+      });
+    }
+
+    // Store RAF ID for cleanup and prevent memory leaks
+    let rafId: number;
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach(p => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        p.y -= p.speedY;
+
+        if (p.y < 0) {
+          p.y = height;
+          p.x = Math.random() * width;
+        }
+      });
+
+      rafId = requestAnimationFrame(render);
+    };
+    rafId = requestAnimationFrame(render);
+
+    const onResize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelAnimationFrame(rafId); // Cancel animation loop on unmount
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
+}
+```
+
+## Particle System
+
+### Particle Properties
+
+<ParamField path="x" type="number">
+  Horizontal position (0 to window width)
+</ParamField>
+
+<ParamField path="y" type="number">
+  Vertical position (0 to window height)
+</ParamField>
+
+<ParamField path="size" type="number">
+  Particle radius in pixels (0.5 to 2.0)
+</ParamField>
+
+<ParamField path="speedY" type="number">
+  Upward movement speed in pixels per frame (0.1 to 0.6)
+</ParamField>
+
+<ParamField path="opacity" type="number">
+  Particle opacity (0.1 to 0.6)
+</ParamField>
+
+### Particle Generation
+
+```typescript
+const particles: { x: number; y: number; size: number; speedY: number; opacity: number }[] = [];
+const numParticles = 100;
+
+for (let i = 0; i < numParticles; i++) {
+  particles.push({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    size: Math.random() * 1.5 + 0.5,
+    speedY: Math.random() * 0.5 + 0.1,
+    opacity: Math.random() * 0.5 + 0.1,
+  });
+}
+```
+
+## Animation Loop
+
+<CodeGroup>
+
+```typescript Render Function
+const render = () => {
+  ctx.clearRect(0, 0, width, height);
+
+  particles.forEach(p => {
+    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    p.y -= p.speedY;
+
+    if (p.y < 0) {
+      p.y = height;
+      p.x = Math.random() * width;
+    }
+  });
+
+  rafId = requestAnimationFrame(render);
+};
+```
+
+```typescript Particle Respawn
+if (p.y < 0) {
+  p.y = height;                  // Reset to bottom
+  p.x = Math.random() * width;   // New random X position
+}
+```
+
+</CodeGroup>
+
+## Performance Considerations
+
+### Memory Leak Prevention
+
+The component stores the requestAnimationFrame ID and cancels it on unmount:
+
+```typescript
+let rafId: number;
+
+const render = () => {
+  // ... render logic
+  rafId = requestAnimationFrame(render);
+};
+rafId = requestAnimationFrame(render);
+
+return () => {
+  cancelAnimationFrame(rafId); // Cancel on unmount
+  window.removeEventListener('resize', onResize);
+};
+```
+
+### Responsive Canvas
+
+The canvas automatically resizes when the window dimensions change:
+
+```typescript
+const onResize = () => {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+};
+window.addEventListener('resize', onResize);
+```
+
+### Non-Interactive Overlay
+
+The canvas uses `pointer-events-none` to allow click-through, ensuring it doesn't interfere with other interactive elements:
+
+```tsx
+<canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />
+```
+
+## Canvas Rendering
+
+Each particle is drawn as a filled circle using the Canvas 2D API:
+
+```typescript
+ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+ctx.beginPath();
+ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+ctx.fill();
+```
+
+## Positioning
+
+The canvas is positioned as a fixed background layer:
+
+- `fixed`: Stays in place during scroll
+- `inset-0`: Covers entire viewport
+- `z-0`: Behind all other content
+- `pointer-events-none`: Click-through enabled
+
+## Dependencies
+
+<ParamField path="React.useRef" type="hook">
+  Canvas element reference for DOM manipulation
+</ParamField>
+
+<ParamField path="React.useEffect" type="hook">
+  Setup and cleanup of animation loop and event listeners
+</ParamField>
+
+## Browser Compatibility
+
+The component uses standard Canvas 2D API features:
+- `getContext('2d')`
+- `fillStyle`, `beginPath`, `arc`, `fill`
+- `clearRect`
+- `requestAnimationFrame`
+
+All features are supported in modern browsers.
+
+## Source Location
+
+`~/workspace/source/src/components/InteractiveCanvas.tsx`

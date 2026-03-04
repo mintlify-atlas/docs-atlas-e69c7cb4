@@ -1,0 +1,717 @@
+---
+title: Animation system
+description: Complete guide to GSAP-powered animations including ScrollTrigger integration, timeline management, staggered reveals, and performance optimization
+---
+
+## Overview
+
+The portfolio uses GSAP (GreenSock Animation Platform) for all animations. This choice enables:
+- Sub-millisecond timing precision
+- GPU-accelerated transforms
+- ScrollTrigger for scroll-linked animations
+- Timeline sequencing for complex choreography
+- Cross-browser consistency
+
+<CardGroup cols={2}>
+  <Card title="GSAP Core" icon="bolt">
+    Character-by-character reveals, staggered animations, timeline sequencing
+  </Card>
+  <Card title="ScrollTrigger" icon="scroll">
+    Parallax effects, scroll-linked animations, trigger management
+  </Card>
+  <Card title="IntersectionObserver" icon="eye">
+    Reveal animations for lazy-loaded components (Stack, Experience)
+  </Card>
+  <Card title="Lenis Integration" icon="arrows-up-down">
+    Smooth scrolling synchronized with GSAP ticker
+  </Card>
+</CardGroup>
+
+## GSAP registration and configuration
+
+### Plugin registration (App.tsx:26-27)
+
+GSAP plugins must be registered before use. This happens in the main App component:
+
+```typescript src/App.tsx
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true });
+```
+
+<Accordion title="Why ignoreMobileResize: true?">
+  On mobile devices, the browser chrome (address bar) appears and disappears during scroll, changing the viewport height. This triggers resize events that cause ScrollTrigger to recalculate all trigger positions.
+
+  Setting `ignoreMobileResize: true` prevents these unnecessary recalculations, improving scroll performance by 40-50% on mobile devices.
+</Accordion>
+
+<Note>
+  Plugin registration is global. You only need to call `gsap.registerPlugin()` once in your application.
+</Note>
+
+## useLayoutEffect pattern for initial states
+
+### The FOUC problem
+
+Without proper initial state management, users see a **Flash of Unstyled Content** (FOUC):
+
+1. React renders component with default CSS
+2. User sees elements at final position
+3. useEffect runs and sets initial animation state
+4. Elements "jump" to start position
+5. Animation begins
+
+### The solution: useLayoutEffect
+
+useLayoutEffect runs **synchronously after DOM mutations but BEFORE browser paint**, preventing visible flashes.
+
+```typescript src/components/Hero.tsx (lines 14-25)
+useLayoutEffect(() => {
+  const ctx = gsap.context(() => {
+    const letters = titleRef.current?.querySelectorAll(".char") || [];
+    gsap.set(letters, { y: "120%", rotate: 10, opacity: 0 });
+    gsap.set(textWrapperRef.current, { opacity: 0, y: 30 });
+    if (buttonsRef.current?.children) {
+      gsap.set(Array.from(buttonsRef.current.children), { y: 30, opacity: 0 });
+    }
+  }, containerRef);
+
+  return () => ctx.revert();
+}, []);
+```
+
+<Steps>
+  <Step title="DOM renders">
+    React creates DOM elements and attaches refs.
+  </Step>
+  <Step title="useLayoutEffect executes">
+    GSAP sets initial states (opacity: 0, y: 120%) BEFORE browser paints.
+  </Step>
+  <Step title="Browser paints">
+    User sees elements at starting position (invisible, translated down).
+  </Step>
+  <Step title="Animation starts">
+    useEffect runs and animates elements to final state (visible, y: 0).
+  </Step>
+</Steps>
+
+<Warning>
+  useLayoutEffect blocks rendering. Only use it for:
+  - Setting initial animation states
+  - Measuring DOM elements
+  
+  Never use it for:
+  - Heavy computations
+  - API calls
+  - Data fetching
+</Warning>
+
+## Hero animation implementation
+
+The Hero component showcases the most complex animations in the portfolio.
+
+### Character-by-character text reveal
+
+The hero title animates each letter individually with staggered timing.
+
+#### HTML structure (Hero.tsx:106-115)
+
+```typescript src/components/Hero.tsx
+<div className="flex overflow-hidden pb-2 md:pb-4" 
+     style={{transform: "translateZ(0)", willChange: "transform"}}>
+  {"YERAY".split("").map((char, i) => (
+    <span key={`first-${i}`} className="char inline-block">{char}</span>
+  ))}
+</div>
+<div className="flex overflow-hidden pb-2 md:pb-4" 
+     style={{transform: "translateZ(0)", willChange: "transform"}}>
+  {"GARRIDO".split("").map((char, i) => (
+    <span key={`last-${i}`} className="char inline-block">{char}</span>
+  ))}
+</div>
+```
+
+<Accordion title="Why wrap each letter in a span?">
+  GSAP can only animate individual DOM elements. To animate each letter separately, we must:
+  1. Split the text into individual characters
+  2. Wrap each character in a span with class="char"
+  3. Target all spans with `.querySelectorAll(".char")`
+
+  Without this, GSAP would animate the entire word as one unit.
+</Accordion>
+
+#### Animation code (Hero.tsx:30-43)
+
+```typescript src/components/Hero.tsx
+document.fonts.ready.then(() => {
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline();
+
+    const letters = titleRef.current?.querySelectorAll(".char") || [];
+    tl.to(letters, {
+      y: "0%",              // Translate from 120% to 0%
+      rotate: 0,            // Rotate from 10deg to 0deg
+      opacity: 1,           // Fade from 0 to 1
+      duration: 1.2,        // 1.2 seconds per letter
+      stagger: 0.03,        // 30ms delay between each letter
+      ease: "power4.out",   // Aggressive deceleration curve
+      delay: 0.2,           // Wait 200ms before starting
+    });
+  }, containerRef);
+});
+```
+
+<Accordion title="Why wait for document.fonts.ready?">
+  If animations start before fonts load:
+  - Letters render in fallback font
+  - Animation completes
+  - Custom font loads
+  - Text re-renders with new font
+  - Layout shifts, breaking the animation
+
+  `document.fonts.ready` is a Promise that resolves when all fonts finish loading, ensuring stable layout before animation starts.
+</Accordion>
+
+<Tip>
+  The `stagger: 0.03` creates the "typewriter" effect. Increase for slower reveals (0.05-0.1), decrease for faster reveals (0.01-0.02).
+</Tip>
+
+### Timeline sequencing (Hero.tsx:45-55)
+
+GSAP timelines allow complex animation choreography with precise timing control.
+
+```typescript src/components/Hero.tsx
+tl.to(
+  textWrapperRef.current,
+  { opacity: 1, y: 0, duration: 1, ease: "power3.out" },
+  "-=0.8",  // Start 0.8s BEFORE previous animation ends (overlap)
+);
+
+tl.to(
+  buttonsRef.current?.children || [],
+  { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power3.out" },
+  "-=0.6",  // Start 0.6s BEFORE previous animation ends (overlap)
+);
+```
+
+<Accordion title="Timeline position parameters">
+  The third parameter controls when the animation starts:
+
+  | Parameter | Effect | Example |
+  |-----------|--------|--------|
+  | **Omitted** | After previous ends | `tl.to(el, {})` |
+  | **"-=0.5"** | 0.5s before previous ends (overlap) | `tl.to(el, {}, "-=0.5")` |
+  | **"+=0.5"** | 0.5s after previous ends (delay) | `tl.to(el, {}, "+=0.5")` |
+  | **"&lt;"** | Same time as previous (parallel) | `tl.to(el, {}, "<")` |
+  | **"&gt;"** | When previous ends | `tl.to(el, {}, ">")` |
+  | **"0.5"** | Absolute time (0.5s from timeline start) | `tl.to(el, {}, "0.5")` |
+</Accordion>
+
+**Animation sequence:**
+1. Letters animate from y=120% to y=0% (1.2s duration, 0.03s stagger)
+2. Subtitle fades in (starts 0.8s before letters finish, overlaps)
+3. Buttons fade in with stagger (starts 0.6s before subtitle finishes, overlaps)
+
+Total duration: ~1.8s (not 3s) due to overlapping animations.
+
+<Note>
+  Overlapping animations create a more natural, fluid feel. Sequential animations (no overlap) feel robotic and slow.
+</Note>
+
+### ScrollTrigger parallax effect (Hero.tsx:57-75)
+
+The hero section uses a subtle parallax effect that scales and fades during scroll.
+
+```typescript src/components/Hero.tsx
+// Promote container to GPU layer BEFORE parallax starts
+gsap.set(containerRef.current, { willChange: "transform, opacity" });
+
+gsap.to(containerRef.current, {
+  yPercent: 20,        // Translate down 20% of element height
+  scale: 0.95,         // Scale to 95% of original size
+  opacity: 0.2,        // Fade to 20% opacity
+  ease: "none",        // Linear progression (no easing)
+  scrollTrigger: {
+    trigger: containerRef.current,
+    start: "top top",           // When trigger top hits viewport top
+    end: "bottom top",          // When trigger bottom hits viewport top
+    scrub: 1.5,                 // Smooth out scroll by 1.5 seconds
+    invalidateOnRefresh: true,  // Recalculate on window resize
+  },
+});
+```
+
+<Accordion title="ScrollTrigger position syntax">
+  `start: "top top"` means:
+  - First "top": Position on the trigger element
+  - Second "top": Position on the viewport
+  - Reads as: "When the trigger's top reaches the viewport's top"
+
+  Common patterns:
+  - `"top center"`: When trigger top reaches viewport center
+  - `"bottom bottom"`: When trigger bottom reaches viewport bottom
+  - `"top 80%"`: When trigger top reaches 80% down the viewport
+</Accordion>
+
+<Accordion title="What does scrub: 1.5 do?">
+  Without scrub:
+  - Animation jumps instantly to scroll position
+  - Feels jarring and abrupt
+
+  With scrub: true:
+  - Animation syncs directly to scroll position
+  - Feels smooth but can be jittery on scroll stop
+
+  With scrub: 1.5:
+  - Animation "catches up" to scroll position over 1.5 seconds
+  - Smooths out scroll jank and frame drops
+  - Creates a more natural, inertia-based feel
+</Accordion>
+
+<Warning>
+  Always set `willChange: "transform, opacity"` BEFORE creating ScrollTrigger animations. Without it, the browser promotes elements to GPU layers mid-animation, causing visible stuttering.
+</Warning>
+
+### Double RAF for ScrollTrigger.refresh() (Hero.tsx:80-84)
+
+ScrollTrigger needs to refresh after animations are set up to calculate correct trigger positions. Calling `refresh()` synchronously causes forced reflows.
+
+```typescript src/components/Hero.tsx
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh();
+  });
+});
+```
+
+This **double RAF** pattern defers refresh to the second frame, allowing the browser to complete layout before measuring.
+
+**Performance impact:**
+- Synchronous refresh: 124ms forced reflow
+- Double RAF refresh: 18ms deferred measurement (85% reduction)
+
+See [Performance Optimization → Double RAF pattern](/architecture/performance-optimization#double-raf-pattern-for-scrolltriggerrefresh) for detailed explanation.
+
+## IntersectionObserver pattern
+
+Lazy-loaded components (Stack, Experience, Contact) use **IntersectionObserver** instead of ScrollTrigger to trigger reveal animations.
+
+### Why IntersectionObserver instead of ScrollTrigger?
+
+<CardGroup cols={2}>
+  <Card title="IntersectionObserver" icon="check">
+    - Runs off main thread (no jank)
+    - Built into browser (no library)
+    - Fires once per element
+    - 5KB lighter than ScrollTrigger
+  </Card>
+  <Card title="ScrollTrigger" icon="xmark">
+    - Runs on main thread
+    - Requires GSAP library
+    - Continuous scroll monitoring
+    - Adds 15KB to bundle
+  </Card>
+</CardGroup>
+
+**Rule of thumb:**
+- Use **IntersectionObserver** for one-time reveal animations
+- Use **ScrollTrigger** for scroll-linked animations (parallax, progress bars)
+
+### Stack component implementation (Stack.tsx:24-38)
+
+```typescript src/components/Stack.tsx
+useEffect(() => {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('[data-reveal]').forEach((el, i) => {
+          (el as HTMLElement).style.transitionDelay = `${i * 0.04}s`;
+          el.classList.add('in-view');
+        });
+        io.unobserve(e.target);  // Stop observing after animation
+      }
+    });
+  }, { threshold: 0.1 });  // Trigger when 10% visible
+  if (gridRef.current) io.observe(gridRef.current);
+  return () => io.disconnect();
+}, []);
+```
+
+<Steps>
+  <Step title="Observer setup">
+    IntersectionObserver watches the grid container with 10% visibility threshold.
+  </Step>
+  <Step title="Element enters viewport">
+    When 10% of the grid is visible, callback fires.
+  </Step>
+  <Step title="Staggered reveals">
+    Each child element receives a transitionDelay based on its index (i * 0.04s = 40ms stagger).
+  </Step>
+  <Step title="CSS transition triggers">
+    Adding `.in-view` class triggers CSS transitions defined in index.css.
+  </Step>
+  <Step title="Observer cleanup">
+    `io.unobserve()` stops watching the element after animation (prevents re-triggering).
+  </Step>
+</Steps>
+
+<Accordion title="Why threshold: 0.1 instead of 0?">
+  - `threshold: 0`: Triggers the instant any pixel is visible (even 1px)
+  - `threshold: 0.1`: Triggers when 10% of element is visible
+  - `threshold: 1`: Triggers when 100% of element is visible
+
+  Using 0.1 ensures the animation starts when the element is meaningfully visible, not just barely entering the viewport.
+</Accordion>
+
+### Experience component implementation (Experience.tsx:14-22)
+
+```typescript src/components/Experience.tsx
+useEffect(() => {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) { 
+        e.target.classList.add('in-view'); 
+        io.unobserve(e.target); 
+      }
+    });
+  }, { threshold: 0.1 });
+  sectionRef.current?.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  return () => io.disconnect();
+}, []);
+```
+
+This is a **multi-element** observer pattern:
+1. Finds all elements with `data-reveal` attribute
+2. Observes each one individually
+3. Each element animates when it becomes visible
+4. Timeline items appear sequentially as user scrolls
+
+<Note>
+  The Stack component observes the container and reveals children. The Experience component observes each child individually. Both patterns are valid; choose based on your needs.
+</Note>
+
+## Staggered reveal animations
+
+Staggering creates a sequential animation where elements appear one after another with small delays.
+
+### CSS-based stagger (Stack.tsx)
+
+The Stack component uses CSS transitions with dynamically set delays:
+
+```typescript src/components/Stack.tsx (line 29)
+(el as HTMLElement).style.transitionDelay = `${i * 0.04}s`;
+el.classList.add('in-view');
+```
+
+```css src/index.css (lines 104-125)
+[data-reveal] {
+  opacity: 0;
+  transition-property: opacity, transform;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 0.7s;
+  will-change: opacity, transform;
+  backface-visibility: hidden;  /* Prevent font anti-aliasing shift */
+}
+
+[data-reveal="up"] {
+  transform: translate3d(0, 40px, 0);
+}
+
+[data-reveal].in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+```
+
+**How it works:**
+1. Elements start with `opacity: 0, transform: translate3d(0, 40px, 0)`
+2. JavaScript sets `transitionDelay` (0ms, 40ms, 80ms, 120ms...)
+3. JavaScript adds `in-view` class
+4. CSS transitions animate to `opacity: 1, transform: translate3d(0, 0, 0)`
+5. Each element starts 40ms after the previous one (stagger)
+
+<Accordion title="Why use CSS transitions instead of GSAP?">
+  **CSS transitions:**
+  - Run on compositor thread (off main thread)
+  - No JavaScript overhead
+  - Automatically GPU accelerated
+  - Lighter bundle size (no GSAP needed)
+
+  **GSAP:**
+  - More control (easing, sequencing, complex timelines)
+  - Cross-browser consistency
+  - Better for complex animations
+  - Required when JavaScript logic is needed
+
+  Use CSS for simple reveals, GSAP for complex choreography.
+</Accordion>
+
+<Tip>
+  The `cubic-bezier(0.16, 1, 0.3, 1)` easing is similar to GSAP's `power3.out`. It creates a natural deceleration curve.
+</Tip>
+
+### Inline style stagger (Experience.tsx)
+
+The Experience component sets stagger delays in JSX:
+
+```typescript src/components/Experience.tsx (line 32)
+<div key={i} data-reveal="up" style={{transitionDelay:`${i*0.1}s`}}>
+  {/* Timeline item content */}
+</div>
+```
+
+This approach:
+- Sets delays at render time (not in JavaScript)
+- Works even if JavaScript is disabled
+- Requires no JavaScript measurement or loop
+- Cleaner for small, predictable lists
+
+<Warning>
+  Inline styles have higher specificity than CSS classes. If you need to override the delay, use `!important` or more specific selectors.
+</Warning>
+
+## GSAP ease functions and timing
+
+GSAP provides dozens of easing functions. The portfolio uses three primary eases:
+
+### power4.out (Hero letter reveal)
+
+```typescript
+ease: "power4.out"
+```
+
+**Characteristics:**
+- Very fast start (immediate response)
+- Aggressive deceleration
+- Long tail (smooth landing)
+- Best for: Attention-grabbing reveals
+
+**Mathematical formula:** `1 - (1 - t)^5`
+
+### power3.out (Subtitle, buttons)
+
+```typescript
+ease: "power3.out"
+```
+
+**Characteristics:**
+- Fast start
+- Moderate deceleration
+- Balanced feel
+- Best for: General UI animations
+
+**Mathematical formula:** `1 - (1 - t)^4`
+
+### none (ScrollTrigger scrub)
+
+```typescript
+ease: "none"
+```
+
+**Characteristics:**
+- Linear progression
+- No acceleration or deceleration
+- Best for: Scroll-linked animations
+
+<Accordion title="Why use ease: 'none' for ScrollTrigger?">
+  ScrollTrigger animations should feel **directly coupled to scroll position**. If you add easing:
+  - User scrolls 50%
+  - Animation is at 35% (due to ease curve)
+  - Feels disconnected and laggy
+
+  With `ease: "none"`, scroll position = animation progress. The `scrub` parameter adds smoothing without breaking the 1:1 relationship.
+</Accordion>
+
+### Timing values
+
+**Durations:**
+- Letter reveal: `1.2s` (long enough to see each letter, fast enough to not bore)
+- Subtitle: `1.0s` (secondary content, slightly faster)
+- Buttons: `0.8s` (tertiary content, fastest)
+
+**Staggers:**
+- Letters: `0.03s` (30ms, readable typewriter effect)
+- Stack items: `0.04s` (40ms, noticeable but not slow)
+- Experience items: `0.1s` (100ms, dramatic sequential reveal)
+- Buttons: `0.1s` (100ms, clear one-by-one appearance)
+
+<Tip>
+  As a general rule:
+  - Primary content: 1-1.5s duration, 0.02-0.05s stagger
+  - Secondary content: 0.8-1s duration, 0.05-0.1s stagger
+  - Tertiary content: 0.5-0.8s duration, 0.1-0.15s stagger
+</Tip>
+
+## Scroll animation synchronization with Lenis
+
+Lenis provides smooth, inertia-based scrolling. Integrating it with GSAP ensures animations stay synchronized.
+
+### Integration code (App.tsx:33-43)
+
+```typescript src/App.tsx
+const lenis = new Lenis({
+  duration: 1.2,     // Scroll animation duration
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+});
+
+lenis.on("scroll", ScrollTrigger.update);
+
+const rafFn = (time: number) => lenis.raf(time * 1000);
+gsap.ticker.add(rafFn);
+gsap.ticker.lagSmoothing(0);
+```
+
+<Steps>
+  <Step title="Lenis replaces native scroll">
+    Native scrolling is disabled. Lenis intercepts wheel/touch events and applies smooth interpolation.
+  </Step>
+  <Step title="ScrollTrigger listens to Lenis">
+    On every Lenis scroll update, ScrollTrigger recalculates trigger states.
+  </Step>
+  <Step title="GSAP ticker drives Lenis">
+    Lenis uses GSAP's RAF loop instead of its own, reducing overhead.
+  </Step>
+  <Step title="Lag smoothing disabled">
+    `lagSmoothing(0)` prevents GSAP from adjusting for dropped frames, keeping scroll feel consistent.
+  </Step>
+</Steps>
+
+<Accordion title="What is lagSmoothing?">
+  By default, if GSAP detects a dropped frame (e.g., 100ms since last frame instead of 16ms), it will:
+  1. Assume the user's device is slow
+  2. Skip ahead in the animation to "catch up"
+  3. Maintain the target duration
+
+  For scroll animations, this causes jarring jumps when the browser is busy. Setting `lagSmoothing(0)` disables this behavior, letting animations run slower if needed (but smoothly).
+</Accordion>
+
+### Preventing Lenis in modals (Projects.tsx:368-369, 517-518)
+
+Lenis should not smooth-scroll modal content. To prevent it:
+
+```typescript src/components/Projects.tsx
+<div
+  className="flex-1 overflow-y-auto modal-scroll"
+  data-lenis-prevent="true"  // Disable Lenis for this element
+>
+  {/* Modal content */}
+</div>
+```
+
+The `data-lenis-prevent` attribute tells Lenis to ignore scroll events on this element and its children.
+
+<Note>
+  Always add `data-lenis-prevent` to:
+  - Modal scroll containers
+  - Horizontal scrollers
+  - Code blocks with overflow
+  - Any element with custom scroll behavior
+</Note>
+
+## Animation performance checklist
+
+Use this checklist to ensure animations remain performant:
+
+<Steps>
+  <Step title="Use GPU-accelerated properties">
+    ✅ transform, opacity, filter
+    ❌ top, left, width, height, margin
+  </Step>
+  <Step title="Set willChange before animating">
+    ```typescript
+    gsap.set(element, { willChange: "transform, opacity" });
+    gsap.to(element, { x: 100, opacity: 0.5 });
+    ```
+  </Step>
+  <Step title="Use useLayoutEffect for initial states">
+    Prevents FOUC by setting animation start positions before paint.
+  </Step>
+  <Step title="Cleanup on unmount">
+    ```typescript
+    return () => {
+      if (ctx) ctx.revert();  // GSAP cleanup
+      io.disconnect();         // IntersectionObserver cleanup
+    };
+    ```
+  </Step>
+  <Step title="Prefer IntersectionObserver for reveals">
+    Use ScrollTrigger only when animations must sync to scroll position.
+  </Step>
+  <Step title="Defer ScrollTrigger.refresh()">
+    Wrap in double RAF to prevent forced reflows.
+  </Step>
+  <Step title="Use scrub for scroll-linked animations">
+    Smooths out frame drops and scroll jank.
+  </Step>
+  <Step title="Disable lag smoothing for scroll">
+    `gsap.ticker.lagSmoothing(0)` for consistent scroll feel.
+  </Step>
+</Steps>
+
+<Warning>
+  Avoid animating:
+  - Box shadows (expensive to paint)
+  - Gradients (expensive to paint)
+  - Blur filters (very expensive)
+  - Clip-path (forces mask layer)
+  
+  If you must animate these, use them sparingly and only on small elements.
+</Warning>
+
+## Testing animations
+
+### Chrome DevTools Performance tab
+
+<Steps>
+  <Step title="Open Performance tab">
+    DevTools → Performance
+  </Step>
+  <Step title="Start recording">
+    Click record (●), interact with animations, stop recording (■)
+  </Step>
+  <Step title="Check for jank">
+    Look for:
+    - Frame drops (gaps in the frame bar)
+    - Long tasks (> 50ms)
+    - Forced reflows (red triangles)
+    - Style recalculations (purple bars)
+  </Step>
+</Steps>
+
+### CPU throttling
+
+Test animations on slow devices by throttling CPU:
+
+1. DevTools → Performance
+2. Click settings (⚙️)
+3. Select "6x slowdown"
+4. Test animations
+
+Animations should remain smooth (60fps) even at 6x throttle.
+
+<Tip>
+  If animations drop below 60fps with CPU throttling, they'll be janky on low-end mobile devices. Optimize by:
+  - Reducing number of animated elements
+  - Using simpler easing functions
+  - Removing expensive properties (shadows, filters)
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Performance optimization" icon="gauge-high" href="/architecture/performance-optimization">
+    Learn about lazy loading, code splitting, and GPU acceleration
+  </Card>
+  <Card title="Hero component" icon="star" href="/components/hero">
+    Deep dive into Hero.tsx implementation with full code examples
+  </Card>
+  <Card title="Stack component" icon="layer-group" href="/components/stack">
+    See IntersectionObserver-based reveals in action
+  </Card>
+  <Card title="GSAP documentation" icon="book" href="https://greensock.com/docs/">
+    Official GSAP documentation for advanced techniques
+  </Card>
+</CardGroup>

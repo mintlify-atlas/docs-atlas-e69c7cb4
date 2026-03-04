@@ -1,0 +1,413 @@
+---
+title: Projects
+description: Horizontal scrolling project showcase with detailed modals and GitHub integration
+---
+
+The Projects component features a horizontal scrolling gallery of featured projects with detailed modal views, plus a secondary modal that displays all GitHub repositories via the GitHub API.
+
+## Features
+
+- **Horizontal scroll gallery** with snap points
+- **Featured project cards** with images and metadata
+- **Detailed project modals** with challenge/solution sections
+- **GitHub API integration** to fetch all repositories
+- **Responsive indicators** (dots on mobile)
+- **Internationalized content** with LocalizedText type
+- **Scroll position tracking** for active card indication
+- **Fork badges** in GitHub repository list
+
+## Visual Appearance
+
+A full-screen section with horizontally scrollable project cards. Each card shows a screenshot, title, tech stack tags, and description. Clicking a card opens a full-screen modal with comprehensive project details. A "View All" button fetches and displays all GitHub repositories in a grid.
+
+## Component Code Structure
+
+### Interfaces
+
+```typescript
+interface Repo {
+  id: number;
+  name: string;
+  description: string;
+  html_url: string;
+  stargazers_count: number;
+  forks_count: number;
+  language: string;
+  fork: boolean;
+}
+
+interface LocalizedText {
+  es: string;
+  en: string;
+  eu: string;
+}
+
+interface FeaturedProject {
+  id: string;
+  title: LocalizedText;
+  tech: string;
+  desc: LocalizedText;
+  link?: string;
+  demoUrl?: string;
+  role: LocalizedText;
+  year: string;
+  longDescChallenge: LocalizedText;
+  longDescSolution: LocalizedText;
+  imageUrl?: string;
+}
+```
+
+### State Management
+
+```typescript
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [activeProject, setActiveProject] = useState<FeaturedProject | null>(null);
+const [repos, setRepos] = useState<Repo[]>([]);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
+const [activeIndex, setActiveIndex] = useState(0);
+```
+
+### Featured Projects Data
+
+The component includes three hardcoded featured projects:
+
+<CodeGroup>
+
+```typescript Zalbi Aisia Project
+{
+  id: "zalbi",
+  title: { es: "Zalbi Aisia", en: "Zalbi Aisia", eu: "Zalbi Aisia" },
+  tech: "PHP 8, WordPress (_s), CPTs, ACF, Vanilla JS, CSS Grid",
+  desc: {
+    es: "Plataforma corporativa y catálogo interactivo sin constructores visuales ni plantillas.",
+    en: "Corporate platform and interactive catalog without visual builders or templates.",
+    eu: "Plataforma korporatiboa eta katalogo interaktiboa, eraikitzaile bisualik edo txantiloirik gabe.",
+  },
+  link: "https://github.com/Garridoparrayeray/zalbi-web-server",
+  demoUrl: "https://dev-zalbi-aisia-eta-abentura.pantheonsite.io/",
+  role: { es: "Full Stack (WP Custom Theme)", en: "Full Stack (WP Custom Theme)", eu: "Full Stack (WP Custom Theme)" },
+  year: "2026",
+  longDescChallenge: { /* ... */ },
+  longDescSolution: { /* ... */ },
+  imageUrl: "/img/projects/zalbi_captura.webp",
+}
+```
+
+```typescript Portfolio Project
+{
+  id: "portfolio-arquitectura",
+  title: { es: "yeraygarrido.dev", en: "yeraygarrido.dev", eu: "yeraygarrido.dev" },
+  tech: "React 19, Vite, Tailwind CSS v4, GSAP, Lenis",
+  desc: {
+    es: "Arquitectura frontend (SPA) de alto rendimiento con animaciones complejas y 90+ Lighthouse",
+    en: "High-performance frontend architecture (SPA) featuring complex animations and 90+ Lighthouse score.",
+    eu: "Errendimendu handiko frontend arkitektura (SPA), animazio konplexuekin eta 90+ Lighthouse-rekin.",
+  },
+  link: "https://github.com/Garridoparrayeray/yeraygarrido.com.git",
+  demoUrl: "https://yeraygarrido.dev",
+  role: { es: "Frontend Engineer / WPO", en: "Frontend Engineer / WPO", eu: "Frontend Ingeniaria / WPO" },
+  year: "2026",
+  longDescChallenge: { /* ... */ },
+  longDescSolution: { /* ... */ },
+  imageUrl: "/img/projects/portfolio_captura.webp",
+}
+```
+
+```typescript Glocalium Project
+{
+  id: "glocalium",
+  title: { es: "Glocalium Services", en: "Glocalium Services", eu: "Glocalium Services" },
+  tech: "WordPress, PHP 8, MySQL, Contact Form 7, Plugins GPLv2, SEO Técnico, Hostalia",
+  desc: {
+    es: "Web corporativa completa con dos plugins PHP propios: persistencia en BD relacional con visor admin y exportación automática a Google Sheets vía CRON + webhook.",
+    en: "Full corporate website with two custom PHP plugins: relational DB persistence with admin viewer and automatic export to Google Sheets via CRON + webhook.",
+    eu: "Web korporatiboa bi PHP plugin propiorekin: datu-basearen iraunkortasuna eta Google Sheets-era esportazio automatikoa.",
+  },
+  link: "https://github.com/Garridoparrayeray/wp_custom_scripts",
+  demoUrl: "https://glocalium.com/",
+  role: { es: "Full Stack WordPress Developer", en: "Full Stack WordPress Developer", eu: "Full Stack WordPress Garatzailea" },
+  year: "2025",
+  longDescChallenge: { /* ... */ },
+  longDescSolution: { /* ... */ },
+  imageUrl: "/img/projects/glocalium_captura.webp",
+}
+```
+
+</CodeGroup>
+
+## GitHub API Integration
+
+### Fetch Repositories
+
+```typescript
+const fetchRepos = async () => {
+  setIsModalOpen(true);
+  setLoading(true);
+  setError("");
+  try {
+    const response = await fetch(
+      "https://api.github.com/users/Garridoparrayeray/repos?sort=updated&per_page=100",
+    );
+    if (!response.ok) throw new Error("Failed to fetch");
+    const data = await response.json();
+    setRepos(data);
+  } catch {
+    setError(t("github.error"));
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+<ParamField path="Endpoint" type="URL">
+  https://api.github.com/users/Garridoparrayeray/repos
+</ParamField>
+
+<ParamField path="sort" type="updated">
+  Sorts repositories by last updated date
+</ParamField>
+
+<ParamField path="per_page" type="100">
+  Fetches up to 100 repositories
+</ParamField>
+
+## Horizontal Scroll Implementation
+
+### Scroll Container
+
+```tsx
+<div
+  ref={scrollRef}
+  onScroll={handleScroll}
+  className="flex items-stretch overflow-x-auto snap-x snap-mandatory hide-scrollbar py-8 scroll-smooth"
+  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+>
+```
+
+- `overflow-x-auto`: Enable horizontal scrolling
+- `snap-x snap-mandatory`: CSS scroll snap
+- `hide-scrollbar`: Custom class to hide scrollbar
+- `scroll-smooth`: Smooth scrolling behavior
+
+### Scroll Position Tracking
+
+```typescript
+const handleScroll = () => {
+  if (!scrollRef.current) return;
+  const { scrollLeft, clientWidth } = scrollRef.current;
+  const index = Math.round(scrollLeft / clientWidth);
+  setActiveIndex(index);
+};
+```
+
+Calculates the current visible card index based on scroll position.
+
+## Project Card Layout
+
+```tsx
+<div
+  key={p.id}
+  ref={(el) => { cardsRef.current[i] = el as HTMLDivElement; }}
+  onClick={() => setActiveProject(p)}
+  className="w-[82vw] md:w-[45vw] max-w-150 shrink-0 flex flex-col group snap-start cursor-pointer h-full"
+>
+  <div className="aspect-video bg-[#050505] mb-6 overflow-hidden relative border border-white/10 group-hover:border-white/40 transition-colors duration-500 rounded-lg">
+    {p.imageUrl ? (
+      <img
+        src={p.imageUrl}
+        alt={l(p.title)}
+        loading="lazy"
+        className="w-full h-full object-cover opacity-50 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+      />
+    ) : (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
+        <span className="font-display text-[15vw] md:text-[8vw] text-white/[0.04] uppercase">
+          0{i + 1}
+        </span>
+      </div>
+    )}
+    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 border border-white/20 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </div>
+  </div>
+  <div className="flex flex-col gap-4 text-center md:text-left flex-1">
+    <div>
+      <h3 className="font-wide text-xl md:text-3xl mb-3 uppercase font-bold text-white group-hover:text-white/80 transition-colors">
+        {l(p.title)}
+      </h3>
+      <div className="flex flex-wrap justify-center md:justify-start gap-2">
+        {p.tech.split(", ").map((tag, j) => (
+          <span key={j} className="font-sans text-[9px] md:text-[10px] tracking-widest text-white bg-white/10 border border-white/10 px-2 py-1 uppercase font-bold rounded-sm">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+    <p className="font-sans text-white/50 leading-relaxed text-sm line-clamp-3 flex-1">
+      {l(p.desc)}
+    </p>
+  </div>
+</div>
+```
+
+## Project Detail Modal
+
+The project detail modal is a full-screen overlay with:
+
+### Header
+- Back button
+- Project title
+- Sticky positioning with backdrop blur
+
+### Hero Image
+- 30vh on mobile, 55vh on desktop
+- Dark overlay gradient
+
+### Content Grid
+- 12-column layout on desktop
+- 8 columns: Main content (Challenge, Solution)
+- 4 columns: Sidebar (Role, Year, Tech Stack, CTA buttons)
+
+### Lenis Scroll Prevention
+
+```tsx
+<div
+  className="flex-1 overflow-y-auto w-full pb-24 modal-scroll overscroll-contain"
+  data-lenis-prevent="true"
+>
+```
+
+The `data-lenis-prevent` attribute prevents smooth scroll library interference.
+
+## GitHub Repository Grid
+
+```tsx
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto pb-12">
+  {repos.map((repo) => (
+    <a
+      key={repo.id}
+      href={repo.html_url}
+      target="_blank"
+      rel="noreferrer"
+      className="bg-[#050505] border border-white/10 p-6 hover:border-white/40 hover:bg-white/5 transition-all duration-300 group flex flex-col h-full rounded-sm"
+    >
+      <h3 className="font-wide text-lg text-white mb-2 group-hover:text-white/90 truncate">
+        {repo.name}{" "}
+        {repo.fork && (
+          <span className="text-[9px] text-white/30 border border-white/10 px-1.5 py-0.5 rounded ml-2">
+            FORK
+          </span>
+        )}
+      </h3>
+      <p className="font-sans text-xs text-white/50 mb-6 flex-1 line-clamp-3">
+        {repo.description || t("github.noDesc")}
+      </p>
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
+        <div className="flex gap-3 text-[10px] font-sans text-white/40 items-center">
+          {repo.language && (
+            <span className="bg-white/10 text-white/80 px-2.5 py-1 rounded-sm border border-white/5 font-bold uppercase">
+              {repo.language}
+            </span>
+          )}
+          <span className="flex items-center gap-1">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            {repo.stargazers_count}
+          </span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/30 group-hover:text-white transition-all">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </div>
+    </a>
+  ))}
+</div>
+```
+
+## Mobile Scroll Indicators
+
+```tsx
+<div className="flex justify-center items-center gap-3 mt-4 md:hidden">
+  {[...projects, { id: "all" }].map((_, i) => (
+    <div
+      key={i}
+      className={`h-1.5 rounded-full transition-all duration-500 ${
+        activeIndex === i 
+          ? "bg-white w-8 shadow-[0_0_8px_rgba(255,255,255,0.5)]" 
+          : "bg-white/20 w-1.5"
+      }`}
+    />
+  ))}
+</div>
+```
+
+Shows position indicators on mobile with active state highlighting.
+
+## Internationalization Helper
+
+```typescript
+const { t, language } = useLanguage();
+const l = (text: LocalizedText) => text[language as keyof LocalizedText] || text.es;
+```
+
+The `l()` helper function extracts the correct language string from LocalizedText objects.
+
+## Animations
+
+### Modal Enter Animation
+
+```css
+@keyframes modalEnter { 
+  from { opacity: 0; transform: translateY(20px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+.animate-modal { 
+  animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+}
+```
+
+### Custom Scrollbar (Modal)
+
+```css
+.modal-scroll::-webkit-scrollbar { width: 4px; }
+.modal-scroll::-webkit-scrollbar-thumb { 
+  background: rgba(255,255,255,0.1); 
+  border-radius: 10px; 
+}
+```
+
+## Dependencies
+
+<ParamField path="useLanguage" type="context">
+  Translation context providing `t()`, `language`, and localization
+</ParamField>
+
+<ParamField path="GitHub API" type="external">
+  https://api.github.com/users/{username}/repos
+</ParamField>
+
+<ParamField path="React.useState" type="hook">
+  State management for modals, repos, loading states
+</ParamField>
+
+<ParamField path="React.useRef" type="hook">
+  Refs for scroll container and card elements
+</ParamField>
+
+## Performance Considerations
+
+- Lazy loading for project images
+- GitHub API called only when user clicks "View All"
+- Scroll position calculated efficiently
+- CSS scroll snap for smooth UX
+- Optimized z-index stacking (z-100, z-200 for modals)
+
+## Source Location
+
+`~/workspace/source/src/components/Projects.tsx`

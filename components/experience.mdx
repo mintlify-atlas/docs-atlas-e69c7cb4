@@ -1,0 +1,230 @@
+---
+title: Experience
+description: Timeline-based experience section with IntersectionObserver reveal animations
+---
+
+The Experience component displays professional experience and education in a vertical timeline layout with animated reveals triggered by viewport intersection.
+
+## Features
+
+- **Vertical timeline** with connecting border line
+- **IntersectionObserver** for scroll-triggered animations
+- **Staggered reveals** with custom delay per item
+- **Responsive layout** with mobile-first design
+- **Hover effects** on timeline dots
+- **Internationalized content** from translation context
+
+## Visual Appearance
+
+The component displays a vertical timeline on the left side (desktop) or as a mobile-friendly card layout. Each experience item includes a glowing dot indicator, title, company/institution name, date range, and description. The timeline dot scales up on hover with a subtle glow effect.
+
+## Component Code
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+
+export default function Experience() {
+  const { t } = useLanguage();
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  const experiences = [
+    { title: t('exp.job1.title'), company: t('exp.job1.company'), date: t('exp.job1.date'), desc: t('exp.job1.desc') },
+    { title: t('exp.job2.title'), company: t('exp.job2.company'), date: t('exp.job2.date'), desc: t('exp.job2.desc') },
+    { title: t('exp.edu1.title'), company: t('exp.edu1.company'), date: t('exp.edu1.date'), desc: t('exp.edu1.desc') },
+  ];
+
+  useEffect(() => {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { 
+          e.target.classList.add('in-view'); 
+          io.unobserve(e.target); 
+        }
+      });
+    }, { threshold: 0.1 });
+    sectionRef.current?.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="py-24 md:py-32 px-6 md:px-12 bg-black text-white relative z-10 border-t border-white/10">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="font-wide text-3xl md:text-5xl font-bold uppercase mb-16 md:mb-24 text-center md:text-left">
+          {t('exp.title')}
+        </h2>
+        <div className="relative border-l border-white/20 ml-4 md:ml-0">
+          {experiences.map((exp, i) => (
+            <div key={i} data-reveal="up" style={{transitionDelay:`${i*0.1}s`}} className="mb-16 md:mb-24 pl-8 md:pl-12 relative group">
+              <div className="absolute w-3 h-3 bg-white rounded-full -left-[6.5px] top-2 group-hover:scale-150 transition-transform duration-300 shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+              <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-2 md:gap-8 mb-4">
+                <h3 className="font-wide text-xl md:text-2xl font-bold uppercase">{exp.title}</h3>
+                <span className="font-sans text-xs md:text-sm tracking-widest uppercase text-white/50 whitespace-nowrap">{exp.date}</span>
+              </div>
+              <h4 className="font-sans text-sm md:text-base tracking-widest uppercase text-white/80 mb-6 font-bold">{exp.company}</h4>
+              <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed max-w-3xl">{exp.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+## Experience Data Structure
+
+Experience items are loaded from the translation context:
+
+```typescript
+const experiences = [
+  { 
+    title: t('exp.job1.title'), 
+    company: t('exp.job1.company'), 
+    date: t('exp.job1.date'), 
+    desc: t('exp.job1.desc') 
+  },
+  { 
+    title: t('exp.job2.title'), 
+    company: t('exp.job2.company'), 
+    date: t('exp.job2.date'), 
+    desc: t('exp.job2.desc') 
+  },
+  { 
+    title: t('exp.edu1.title'), 
+    company: t('exp.edu1.company'), 
+    date: t('exp.edu1.date'), 
+    desc: t('exp.edu1.desc') 
+  },
+];
+```
+
+## IntersectionObserver Animation
+
+<CodeGroup>
+
+```typescript Observer Setup
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (e.isIntersecting) { 
+      e.target.classList.add('in-view'); 
+      io.unobserve(e.target);  // Unobserve after animation
+    }
+  });
+}, { threshold: 0.1 });  // Trigger when 10% visible
+```
+
+```typescript Element Observation
+sectionRef.current?.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+```
+
+```typescript Staggered Delays
+<div 
+  key={i} 
+  data-reveal="up" 
+  style={{transitionDelay:`${i*0.1}s`}}  // 0s, 0.1s, 0.2s...
+  className="mb-16 md:mb-24 pl-8 md:pl-12 relative group"
+>
+```
+
+</CodeGroup>
+
+## Timeline Styling
+
+### Vertical Line
+
+```tsx
+<div className="relative border-l border-white/20 ml-4 md:ml-0">
+```
+
+The timeline uses a left border on the container element.
+
+### Timeline Dots
+
+```tsx
+<div className="absolute w-3 h-3 bg-white rounded-full -left-[6.5px] top-2 group-hover:scale-150 transition-transform duration-300 shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+```
+
+Each experience has a white dot positioned at `-left-[6.5px]` to center it on the border line. On hover, the dot scales to 150% with a glow shadow effect.
+
+## Layout Structure
+
+Each experience item follows this structure:
+
+1. **Timeline Dot** (absolute positioning)
+2. **Header Row** (title + date)
+   - Desktop: Flexbox row with space-between
+   - Mobile: Stacked column
+3. **Company/Institution Name**
+4. **Description**
+
+## Responsive Behavior
+
+<ParamField path="Mobile" type="<md">
+  - Timeline line visible with 4px left margin
+  - Stacked layout (title above date)
+  - 8px left padding
+  - Smaller text sizes
+</ParamField>
+
+<ParamField path="Desktop" type="md+">
+  - Timeline line flush to content
+  - Horizontal layout (title and date in row)
+  - 12px left padding
+  - Larger text sizes
+</ParamField>
+
+## Animation Behavior
+
+Elements with `data-reveal="up"` are observed by IntersectionObserver:
+
+1. Initially hidden/offset (CSS not shown in component)
+2. When 10% visible, `in-view` class is added
+3. Each item has a staggered delay: `0s`, `0.1s`, `0.2s`
+4. After animation, observer disconnects to improve performance
+
+## CSS Requirements
+
+The component relies on external CSS for reveal animations:
+
+```css
+/* Expected CSS (not in component) */
+[data-reveal="up"] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+
+[data-reveal="up"].in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+```
+
+## Dependencies
+
+<ParamField path="useLanguage" type="context">
+  Translation context providing the `t()` function for internationalized content
+</ParamField>
+
+<ParamField path="IntersectionObserver" type="Web API">
+  Native browser API for efficient scroll-based animations
+</ParamField>
+
+## Accessibility
+
+- Semantic HTML with proper heading hierarchy
+- Adequate color contrast (white text on black background)
+- Responsive text sizing
+- Clear visual hierarchy
+
+## Performance
+
+The IntersectionObserver automatically:
+- Unobserves elements after animation
+- Disconnects on component unmount
+- Uses efficient threshold-based detection (10% visibility)
+
+## Source Location
+
+`~/workspace/source/src/components/Experience.tsx`

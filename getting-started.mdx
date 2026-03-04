@@ -1,0 +1,239 @@
+---
+title: Getting started
+description: Set up the portfolio project locally and start exploring the codebase
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+  <Card title="Node.js 18+" icon="node-js">
+    Required for running the development server and build tools
+  </Card>
+  <Card title="Git" icon="git-alt">
+    For cloning the repository and version control
+  </Card>
+  <Card title="npm" icon="npm">
+    Package manager (comes with Node.js)
+  </Card>
+  <Card title="Code editor" icon="code">
+    VS Code, WebStorm, or your preferred editor
+  </Card>
+</CardGroup>
+
+<Note>
+  Node.js 18 or higher is required. Check your version with `node --version`.
+</Note>
+
+## Installation steps
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the repository from GitHub to your local machine:
+    
+    ```bash Terminal
+    git clone https://github.com/Garridoparrayeray/yeraygarrido.dev.git
+    cd yeraygarrido.dev
+    ```
+    
+    This will download the complete source code and all assets.
+  </Step>
+  
+  <Step title="Install dependencies">
+    Install all required npm packages:
+    
+    ```bash Terminal
+    npm install
+    ```
+    
+    This will install the following key dependencies:
+    
+    **Runtime dependencies:**
+    - `react@19.0.0` - React library
+    - `react-dom@19.0.0` - React DOM renderer
+    - `gsap@3.14.2` - Animation library
+    - `lenis@1.3.17` - Smooth scrolling
+    - `react-github-calendar@5.0.5` - GitHub contribution calendar
+    - `@vercel/analytics@1.6.1` - Analytics integration
+    - `@vercel/speed-insights@1.3.1` - Performance monitoring
+    - `@microsoft/clarity@1.0.2` - User behavior analytics
+    
+    **Development dependencies:**
+    - `vite@6.2.0` - Build tool
+    - `typescript@5.8.2` - Type checking
+    - `tailwindcss@4.1.14` - CSS framework
+    - `@vitejs/plugin-react@5.0.4` - React plugin for Vite
+    - `terser@5.46.0` - JavaScript minifier
+    - `vite-plugin-css-injected-by-js@4.0.1` - CSS injection plugin
+    
+    <Accordion title="Why these specific versions?">
+      - **React 19**: Latest version with improved Suspense and concurrent features
+      - **Vite 6**: Fastest build tool with native ESM support
+      - **GSAP 3.14**: Industry-standard animation library
+      - **Tailwind v4**: Latest version with improved performance and DX
+      - **Lenis 1.3**: Smoothest scrolling library with momentum-based easing
+    </Accordion>
+  </Step>
+  
+  <Step title="Start the development server">
+    Launch the Vite development server:
+    
+    ```bash Terminal
+    npm run dev
+    ```
+    
+    The development server will start on port 3000 and bind to all network interfaces:
+    
+    ```plaintext Output
+    VITE v6.2.0  ready in 324 ms
+    
+    ➜  Local:   http://localhost:3000/
+    ➜  Network: http://192.168.1.100:3000/
+    ```
+    
+    <Info>
+      The server runs on `0.0.0.0` (all interfaces) so you can access it from other devices on your network for mobile testing.
+    </Info>
+  </Step>
+  
+  <Step title="Open in browser">
+    Navigate to `http://localhost:3000` in your browser. You should see the portfolio homepage with the animated hero section.
+    
+    The development server includes:
+    - ⚡ Hot Module Replacement (HMR)
+    - 🔄 Instant updates on file changes
+    - 🐛 Source maps for debugging
+    - 📱 Network access for mobile testing
+  </Step>
+</Steps>
+
+## Available scripts
+
+The project includes several npm scripts defined in `package.json`:
+
+<ParamField path="npm run dev" type="command">
+  Starts the Vite development server on port 3000 with HMR enabled
+</ParamField>
+
+<ParamField path="npm run build" type="command">
+  Creates an optimized production build in the `dist/` directory with Terser minification
+</ParamField>
+
+<ParamField path="npm run preview" type="command">
+  Serves the production build locally for testing before deployment
+</ParamField>
+
+<ParamField path="npm run clean" type="command">
+  Removes the `dist/` directory to start fresh
+</ParamField>
+
+<ParamField path="npm run lint" type="command">
+  Runs TypeScript type checking without emitting files
+</ParamField>
+
+## Development workflow
+
+<Steps>
+  <Step title="Make changes">
+    Edit files in the `src/` directory. Changes will be reflected immediately thanks to HMR.
+  </Step>
+  
+  <Step title="Test locally">
+    View your changes at `http://localhost:3000` and test on different screen sizes.
+  </Step>
+  
+  <Step title="Build for production">
+    Run `npm run build` to create an optimized production bundle.
+  </Step>
+  
+  <Step title="Preview production build">
+    Run `npm run preview` to test the production build locally before deploying.
+  </Step>
+</Steps>
+
+## Project structure overview
+
+Once installed, your project structure will look like this:
+
+```plaintext Directory structure
+yeraygarrido.dev/
+├── public/              # Static assets
+│   ├── cv.xml          # Public API endpoint
+│   ├── cv.json
+│   ├── cv.txt
+│   ├── img/
+│   └── fonts/
+├── src/
+│   ├── components/     # React components
+│   ├── context/        # Global state
+│   ├── App.tsx         # Main app component
+│   └── main.tsx        # Entry point
+├── vite.config.ts      # Vite configuration
+├── tsconfig.json       # TypeScript config
+├── package.json        # Dependencies
+└── tailwind.config.js  # Tailwind config
+```
+
+<Tip>
+  Start by exploring the `src/App.tsx` file to understand how lazy loading and Suspense boundaries are implemented.
+</Tip>
+
+## Next steps
+
+Now that you have the project running locally, explore the documentation:
+
+<CardGroup cols={3}>
+  <Card title="Architecture" icon="sitemap" href="/architecture/project-structure">
+    Learn about the project structure and design patterns
+  </Card>
+  <Card title="Components" icon="puzzle-piece" href="/components/hero">
+    Explore the React components and their implementations
+  </Card>
+  <Card title="Performance" icon="gauge-high" href="/architecture/performance-optimization">
+    Understand the performance optimization strategies
+  </Card>
+  <Card title="Animations" icon="wand-magic-sparkles" href="/architecture/animation-system">
+    Deep dive into GSAP animations and ScrollTrigger
+  </Card>
+  <Card title="i18n" icon="language" href="/features/internationalization">
+    Learn about the multi-language implementation
+  </Card>
+  <Card title="Customization" icon="palette" href="/development/customization">
+    Customize the portfolio for your own use
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="Port 3000 is already in use">
+  If port 3000 is occupied, Vite will automatically try the next available port (3001, 3002, etc.).
+  
+  To use a specific port:
+  ```bash
+  npm run dev -- --port 3001
+  ```
+</Accordion>
+
+<Accordion title="Module not found errors">
+  Delete `node_modules/` and reinstall:
+  ```bash
+  rm -rf node_modules package-lock.json
+  npm install
+  ```
+</Accordion>
+
+<Accordion title="TypeScript errors">
+  Run type checking to see detailed errors:
+  ```bash
+  npm run lint
+  ```
+</Accordion>
+
+<Accordion title="HMR not working">
+  HMR can be disabled with the `DISABLE_HMR` environment variable. Check your `.env` file or remove the variable:
+  ```bash
+  unset DISABLE_HMR
+  npm run dev
+  ```
+</Accordion>

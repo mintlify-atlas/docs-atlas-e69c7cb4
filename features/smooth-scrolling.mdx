@@ -1,0 +1,285 @@
+---
+title: Smooth Scrolling
+description: Lenis smooth scroll implementation with GSAP integration for buttery animations
+---
+
+The portfolio implements smooth scrolling using [Lenis](https://github.com/studio-freight/lenis), a lightweight smooth scroll library. The implementation is tightly integrated with GSAP (GreenSock Animation Platform) for synchronized scroll-triggered animations.
+
+## Lenis Configuration
+
+Lenis is initialized with custom easing and duration settings in the main App component:
+
+```tsx src/App.tsx
+import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true });
+
+export default function App() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    // Integration logic...
+  }, []);
+}
+```
+
+## Configuration Options
+
+<ParamField path="duration" type="number" default="1.2">
+  Scroll animation duration in seconds. Higher values create slower, more dramatic scrolling.
+</ParamField>
+
+<ParamField path="easing" type="function">
+  Custom easing function for scroll interpolation:
+  ```tsx
+  (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+  ```
+  This creates an exponential ease-out effect, starting fast and decelerating smoothly.
+</ParamField>
+
+<ParamField path="smoothWheel" type="boolean" default="true">
+  Enables smooth scrolling for mouse wheel events. Interpolates between discrete wheel events.
+</ParamField>
+
+## Easing Function Breakdown
+
+The custom easing function creates a sophisticated deceleration curve:
+
+```tsx
+(t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+```
+
+**How it works:**
+- `t` is the progress value (0 to 1)
+- `Math.pow(2, -10 * t)` creates exponential decay
+- `1.001 - ...` inverts the curve for ease-out behavior
+- `Math.min(1, ...)` clamps the maximum value to 1
+
+<Info>
+  This easing function is similar to CSS's `cubic-bezier(0.25, 0.46, 0.45, 0.94)` but with more control over the deceleration curve.
+</Info>
+
+## GSAP Integration
+
+Lenis is synchronized with GSAP's ticker for smooth animation updates:
+
+```tsx src/App.tsx
+lenis.on('scroll', ScrollTrigger.update);
+
+const rafFn = (time: number) => lenis.raf(time * 1000);
+gsap.ticker.add(rafFn);
+gsap.ticker.lagSmoothing(0);
+```
+
+### ScrollTrigger Synchronization
+
+```tsx
+lenis.on('scroll', ScrollTrigger.update);
+```
+
+This line ensures GSAP's ScrollTrigger plugin updates whenever Lenis fires a scroll event, keeping animations in sync with the smooth scroll position.
+
+### GSAP Ticker Integration
+
+```tsx
+const rafFn = (time: number) => lenis.raf(time * 1000);
+gsap.ticker.add(rafFn);
+```
+
+**Why use GSAP's ticker?**
+- **Single RAF loop**: Instead of multiple `requestAnimationFrame` calls, GSAP manages one optimized loop
+- **Performance**: Reduces overhead by consolidating animation updates
+- **Synchronization**: Ensures Lenis and GSAP animations run on the same timeline
+
+<Note>
+  The `time * 1000` conversion is necessary because GSAP's ticker provides time in seconds, while Lenis expects milliseconds.
+</Note>
+
+## Lag Smoothing Configuration
+
+```tsx src/App.tsx
+gsap.ticker.lagSmoothing(0);
+```
+
+This critical line disables GSAP's default lag smoothing:
+
+<AccordionGroup>
+  <Accordion title="What is lag smoothing?">
+    By default, GSAP detects when the browser is lagging (e.g., during tab switches) and adjusts animation timing to compensate. This can cause animations to "jump" forward.
+  </Accordion>
+  
+  <Accordion title="Why disable it?">
+    With smooth scrolling, lag smoothing can cause jarring jumps in scroll position when returning to the tab. Setting it to `0` disables this behavior, ensuring consistent scroll physics.
+  </Accordion>
+  
+  <Accordion title="Trade-offs">
+    - **Pro**: Consistent scroll behavior across all scenarios
+    - **Con**: Animations may fall behind if the tab is backgrounded for a long time
+    
+    For a portfolio site, consistency is more important than perfect time tracking.
+  </Accordion>
+</AccordionGroup>
+
+## ScrollTrigger Mobile Configuration
+
+```tsx src/App.tsx
+ScrollTrigger.config({ ignoreMobileResize: true });
+```
+
+This prevents ScrollTrigger from refreshing on mobile address bar show/hide, which would cause unwanted animation retriggering.
+
+## Cleanup and Memory Management
+
+Proper cleanup is essential to prevent memory leaks:
+
+```tsx src/App.tsx
+return () => {
+  lenis.destroy();
+  gsap.ticker.remove(rafFn);
+  clearTimeout(timer);
+  window.removeEventListener('scroll', handleInteraction);
+  window.removeEventListener('mousemove', handleInteraction);
+  window.removeEventListener('touchstart', handleInteraction);
+};
+```
+
+<Steps>
+  <Step title="Destroy Lenis Instance">
+    `lenis.destroy()` removes all event listeners and stops the animation loop
+  </Step>
+  
+  <Step title="Remove GSAP Ticker Function">
+    `gsap.ticker.remove(rafFn)` stops calling Lenis's RAF function
+  </Step>
+  
+  <Step title="Clear Timers and Listeners">
+    Remove all other event listeners and timers to prevent memory leaks
+  </Step>
+</Steps>
+
+## Complete Implementation
+
+Here's the full smooth scroll setup:
+
+```tsx src/App.tsx
+import { useEffect } from 'react';
+import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true });
+
+export default function App() {
+  useEffect(() => {
+    // Initialize Lenis
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    // Sync with ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    // Add to GSAP ticker
+    const rafFn = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(rafFn);
+    gsap.ticker.lagSmoothing(0);
+
+    // Cleanup
+    return () => {
+      lenis.destroy();
+      gsap.ticker.remove(rafFn);
+    };
+  }, []);
+
+  return (
+    <main>
+      {/* App content */}
+    </main>
+  );
+}
+```
+
+## Benefits of This Implementation
+
+<CardGroup cols={2}>
+  <Card title="Butter-Smooth Scrolling" icon="butter">
+    Interpolated scroll events create fluid motion instead of discrete jumps
+  </Card>
+  
+  <Card title="Performance Optimized" icon="gauge-high">
+    Single RAF loop via GSAP ticker reduces CPU overhead
+  </Card>
+  
+  <Card title="Animation Synchronization" icon="arrows-rotate">
+    Scroll-triggered animations stay perfectly in sync with scroll position
+  </Card>
+  
+  <Card title="Customizable Easing" icon="bezier-curve">
+    Fine-tuned easing function for natural deceleration
+  </Card>
+</CardGroup>
+
+## Scroll Behavior Comparison
+
+<Tabs>
+  <Tab title="Native Scroll">
+    ```
+    User scrolls → Instant position jump → Discrete movement
+    ```
+    - No interpolation
+    - Can feel jarring
+    - Zero overhead
+  </Tab>
+  
+  <Tab title="Lenis Smooth Scroll">
+    ```
+    User scrolls → Lenis intercepts → Interpolates position → Smooth animation
+    ```
+    - Smooth interpolation
+    - Natural deceleration
+    - Minimal overhead (~1-2ms per frame)
+  </Tab>
+</Tabs>
+
+## Debugging Smooth Scroll
+
+To verify Lenis is working correctly:
+
+```tsx
+lenis.on('scroll', (e) => {
+  console.log('Scroll position:', e.scroll);
+  console.log('Scroll velocity:', e.velocity);
+  console.log('Animation progress:', e.progress);
+});
+```
+
+<Warning>
+  Remove console logs in production as they fire on every scroll frame and can impact performance.
+</Warning>
+
+## Performance Considerations
+
+- **CPU Usage**: Lenis adds ~1-2ms per frame on modern devices
+- **Memory**: Negligible (~50KB including dependencies)
+- **Mobile**: Works well on mobile with `smoothWheel: true`
+- **Accessibility**: Respects `prefers-reduced-motion` (can be configured)
+
+## Browser Compatibility
+
+<Check>**Supported**: Chrome, Firefox, Safari, Edge (all modern versions)</Check>
+<Check>**Mobile**: iOS Safari 12+, Chrome Android 80+</Check>
+<Check>**Fallback**: Native scroll on older browsers (graceful degradation)</Check>
+
+<Tip>
+  Test smooth scrolling with long content pages. The effect is most noticeable with substantial scroll distances.
+</Tip>

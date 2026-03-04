@@ -1,0 +1,671 @@
+---
+title: Customization Guide
+description: Complete guide to customizing colors, content, animations, and features in the Yeray Garrido Portfolio
+---
+
+This guide shows you how to customize every aspect of the portfolio to make it your own.
+
+## Colors and Branding
+
+### Tailwind CSS Theme
+
+Colors and fonts are defined using Tailwind CSS v4's `@theme` directive in `src/index.css:2-9`:
+
+```css src/index.css
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Anton", ui-sans-serif, system-ui, sans-serif;
+  --font-wide: "Syncopate", ui-sans-serif, system-ui, sans-serif;
+  --color-bg-base: #000;
+  --color-text-main: #ffffff;
+  --color-accent: #ffffff;
+}
+```
+
+### Customizing Colors
+
+<Tabs>
+  <Tab title="Background">
+    Change the main background color:
+
+    ```css src/index.css
+    @theme {
+      --color-bg-base: #0a0a0a;  /* Slightly lighter black */
+    }
+    ```
+
+    This affects the entire portfolio background.
+  </Tab>
+
+  <Tab title="Text Color">
+    Modify the primary text color:
+
+    ```css src/index.css
+    @theme {
+      --color-text-main: #f0f0f0;  /* Slightly off-white */
+    }
+    ```
+  </Tab>
+
+  <Tab title="Accent Color">
+    Change accent colors throughout the site:
+
+    ```css src/index.css
+    @theme {
+      --color-accent: #00ff88;  /* Green accent */
+    }
+    ```
+
+    <Tip>
+      You can also use Tailwind's built-in color utilities like `bg-blue-500`, `text-red-600`, etc.
+    </Tip>
+  </Tab>
+</Tabs>
+
+### Border and Glow Effects
+
+The portfolio uses subtle white borders with opacity. To customize:
+
+```css
+/* Find instances of border-white/10 and adjust opacity */
+border border-white/20  /* Increase from 10 to 20 for more visible borders */
+```
+
+Modify the glow effect in `src/index.css:72-85`:
+
+```css src/index.css
+.glow-bg {
+  background: radial-gradient(
+    circle at 50% 120%,
+    rgba(0, 255, 136, 0.15) 0%,  /* Green glow */
+    rgba(0, 0, 0, 0) 60%
+  );
+}
+```
+
+## Fonts and Typography
+
+### Custom Fonts
+
+The portfolio uses three custom font families:
+
+| Font Family | Usage | Weight |
+|-------------|-------|--------|
+| **Inter** | Body text, descriptions | 400, 500, 600 |
+| **Syncopate** | Headings, navigation | 400, 700 |
+| **Anton** | Display text, large titles | 400 |
+
+### Adding New Fonts
+
+<Steps>
+  <Step title="Add Font Files">
+    Place your `.woff2` files in `/public/fonts/`:
+
+    ```
+    public/fonts/
+    ├── your-font-400.woff2
+    ├── your-font-700.woff2
+    ```
+  </Step>
+
+  <Step title="Define @font-face">
+    Add font-face declarations in `src/index.css`:
+
+    ```css src/index.css
+    @font-face {
+      font-family: "YourFont";
+      src: url("/fonts/your-font-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    ```
+  </Step>
+
+  <Step title="Update Theme">
+    Reference your font in the `@theme` directive:
+
+    ```css src/index.css
+    @theme {
+      --font-sans: "YourFont", ui-sans-serif, system-ui, sans-serif;
+    }
+    ```
+  </Step>
+
+  <Step title="Use in Components">
+    Apply the font using Tailwind classes:
+
+    ```jsx
+    <h1 className="font-sans">Your heading</h1>
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  Use `font-display: block` for critical fonts (headings) and `swap` for body text to prevent layout shifts.
+</Warning>
+
+## GSAP Animations
+
+### Reveal Animations
+
+The portfolio uses custom reveal animations with IntersectionObserver. These are defined in `src/index.css:103-137`:
+
+```css src/index.css
+[data-reveal] {
+  opacity: 0;
+  transition-property: opacity, transform;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 0.7s;
+}
+
+[data-reveal="up"] {
+  transform: translate3d(0, 40px, 0);
+}
+
+[data-reveal="left"] {
+  transform: translate3d(-40px, 0, 0);
+}
+
+[data-reveal="right"] {
+  transform: translate3d(40px, 0, 0);
+}
+
+[data-reveal].in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+```
+
+### Customizing Animations
+
+<Tabs>
+  <Tab title="Animation Duration">
+    Change how long animations take:
+
+    ```css src/index.css
+    [data-reveal] {
+      transition-duration: 1s;  /* Slower animation */
+    }
+    ```
+  </Tab>
+
+  <Tab title="Animation Distance">
+    Adjust the distance elements travel:
+
+    ```css src/index.css
+    [data-reveal="up"] {
+      transform: translate3d(0, 80px, 0);  /* Larger distance */
+    }
+    ```
+  </Tab>
+
+  <Tab title="Animation Easing">
+    Modify the easing function:
+
+    ```css src/index.css
+    [data-reveal] {
+      transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);  /* Bounce */
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Using Reveal Animations
+
+Apply reveal animations to any element:
+
+```jsx
+<div data-reveal="up">Content fades up</div>
+<div data-reveal="left">Content slides from left</div>
+<div data-reveal="right">Content slides from right</div>
+```
+
+The animations trigger automatically when elements enter the viewport via IntersectionObserver.
+
+## Translations and Languages
+
+### Adding New Translations
+
+The portfolio supports three languages: English (en), Spanish (es), and Basque (eu). Translations are in `src/context/LanguageContext.tsx:12-233`.
+
+<Steps>
+  <Step title="Locate Translation Keys">
+    Find the translations object:
+
+    ```typescript src/context/LanguageContext.tsx
+    const translations = {
+      en: { /* English */ },
+      es: { /* Spanish */ },
+      eu: { /* Basque */ },
+    };
+    ```
+  </Step>
+
+  <Step title="Add New Translation Key">
+    Add your key to all language objects:
+
+    ```typescript
+    const translations = {
+      en: {
+        'custom.greeting': 'Hello, welcome!',
+        // ... other keys
+      },
+      es: {
+        'custom.greeting': '¡Hola, bienvenido!',
+        // ... other keys
+      },
+      eu: {
+        'custom.greeting': 'Kaixo, ongi etorri!',
+        // ... other keys
+      },
+    };
+    ```
+  </Step>
+
+  <Step title="Use in Components">
+    Access translations using the `t()` function:
+
+    ```typescript
+    const { t } = useLanguage();
+
+    return <h1>{t('custom.greeting')}</h1>;
+    ```
+  </Step>
+</Steps>
+
+### Adding a New Language
+
+<Steps>
+  <Step title="Update Language Type">
+    Add your language code to the type definition:
+
+    ```typescript src/context/LanguageContext.tsx
+    type Language = 'en' | 'es' | 'eu' | 'fr';  // Added French
+    ```
+  </Step>
+
+  <Step title="Add Translations">
+    Create a complete translation object:
+
+    ```typescript
+    const translations = {
+      en: { /* ... */ },
+      es: { /* ... */ },
+      eu: { /* ... */ },
+      fr: {
+        'header.home': 'Retour à l\'accueil',
+        'hero.role': 'Ingénieur Logiciel & Développeur Full Stack',
+        // ... all other keys
+      },
+    };
+    ```
+  </Step>
+
+  <Step title="Update SEO Data">
+    Add SEO metadata for the new language:
+
+    ```typescript src/context/LanguageContext.tsx
+    const seoData = {
+      es: { /* ... */ },
+      en: { /* ... */ },
+      eu: { /* ... */ },
+      fr: {
+        title: 'Yeray Garrido | Ingénieur Logiciel',
+        description: 'Ingénieur logiciel spécialisé en PHP, Java...',
+      },
+    };
+    ```
+  </Step>
+
+  <Step title="Update Locale Attribute">
+    Add locale mapping in the useEffect:
+
+    ```typescript src/context/LanguageContext.tsx
+    setMeta(
+      'meta[property="og:locale"]',
+      language === 'es' ? 'es_ES' :
+      language === 'en' ? 'en_US' :
+      language === 'eu' ? 'eu_EU' :
+      language === 'fr' ? 'fr_FR' : 'en_US'
+    );
+    ```
+  </Step>
+</Steps>
+
+## Tech Stack Customization
+
+### Modifying the Stack
+
+The tech stack is defined in `src/components/Stack.tsx:4-18`:
+
+```typescript src/components/Stack.tsx
+const techStack = [
+  { name: 'Java', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg' },
+  { name: 'PHP', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg' },
+  { name: 'MySQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg' },
+  // ... more technologies
+];
+```
+
+### Adding New Technologies
+
+<CodeGroup>
+
+```typescript Add Technology
+const techStack = [
+  // ... existing items
+  {
+    name: 'Python',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg'
+  },
+];
+```
+
+```typescript Add with Invert
+// For icons that need color inversion (like LaTeX)
+const techStack = [
+  // ... existing items
+  {
+    name: 'Node.js',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+    invert: true  // Inverts icon color
+  },
+];
+```
+
+</CodeGroup>
+
+<Tip>
+  Find more icons at [Devicon](https://devicon.dev/) - a comprehensive library of programming language and tool icons.
+</Tip>
+
+### Stack Grid Layout
+
+The stack uses CSS Grid with responsive columns:
+
+```jsx src/components/Stack.tsx:46
+<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px">
+```
+
+Customize the grid:
+
+```jsx
+{/* 3 columns on mobile, 4 on tablet, 6 on desktop */}
+<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-px">
+```
+
+## Projects Customization
+
+### Adding New Projects
+
+Projects are defined in `src/components/Projects.tsx:72-168`. Here's how to add a new one:
+
+```typescript src/components/Projects.tsx
+const projects: FeaturedProject[] = [
+  // ... existing projects
+  {
+    id: "your-project",
+    title: {
+      es: "Tu Proyecto",
+      en: "Your Project",
+      eu: "Zure Proiektua"
+    },
+    tech: "React, TypeScript, Node.js, PostgreSQL",
+    desc: {
+      es: "Descripción breve del proyecto en español.",
+      en: "Brief project description in English.",
+      eu: "Proiektuaren deskribapen laburra euskaraz."
+    },
+    link: "https://github.com/yourusername/your-project",
+    demoUrl: "https://your-project.com",
+    role: {
+      es: "Full Stack Developer",
+      en: "Full Stack Developer",
+      eu: "Full Stack Garatzailea"
+    },
+    year: "2026",
+    longDescChallenge: {
+      es: "El reto principal era...",
+      en: "The main challenge was...",
+      eu: "Erronka nagusia... zen"
+    },
+    longDescSolution: {
+      es: "La solución implementada fue...",
+      en: "The implemented solution was...",
+      eu: "Inplementatutako soluzioa... izan zen"
+    },
+    imageUrl: "/img/projects/your-project.webp"
+  },
+];
+```
+
+### Project Image Guidelines
+
+<Steps>
+  <Step title="Image Format">
+    Use **WebP** format for optimal compression:
+
+    ```bash
+    # Convert PNG to WebP
+    cwebp -q 80 input.png -o output.webp
+    ```
+  </Step>
+
+  <Step title="Image Dimensions">
+    Recommended dimensions:
+    - **Width**: 1200px
+    - **Height**: 675px
+    - **Aspect Ratio**: 16:9
+  </Step>
+
+  <Step title="Save Location">
+    Place images in:
+
+    ```
+    public/img/projects/your-project.webp
+    ```
+  </Step>
+</Steps>
+
+### Changing GitHub Username
+
+Update the GitHub API endpoint in `src/components/Projects.tsx:185`:
+
+```typescript src/components/Projects.tsx
+const response = await fetch(
+  "https://api.github.com/users/YOUR_USERNAME/repos?sort=updated&per_page=100"
+);
+```
+
+## CV Data Customization
+
+### XML CV Format
+
+The portfolio includes a public API endpoint that serves CV data in XML format. Edit `/public/cv.xml`:
+
+```xml public/cv.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<cv>
+  <personal>
+    <name>Your Name</name>
+    <title>Your Title</title>
+    <email>your@email.com</email>
+    <location>Your Location</location>
+  </personal>
+  <experience>
+    <job>
+      <title>Job Title</title>
+      <company>Company Name</company>
+      <dates>2023-Present</dates>
+      <description>Job description</description>
+    </job>
+  </experience>
+  <!-- Add more sections -->
+</cv>
+```
+
+### Accessing the CV API
+
+Users can access your CV via terminal:
+
+```bash
+curl https://yourdomain.com/cv.xml | xmllint --format -
+```
+
+<Tip>
+  This XML CV is a unique feature for technical recruiters who prefer consuming data programmatically.
+</Tip>
+
+## Adding New Sections
+
+### Creating a New Component Section
+
+<Steps>
+  <Step title="Create Component File">
+    Create a new component in `src/components/`:
+
+    ```typescript src/components/NewSection.tsx
+    import { useLanguage } from '../context/LanguageContext';
+
+    export default function NewSection() {
+      const { t } = useLanguage();
+
+      return (
+        <section className="py-24 md:py-32 px-6 md:px-12 bg-black border-t border-white/10">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="font-wide text-3xl md:text-5xl font-bold uppercase mb-16">
+              {t('newSection.title')}
+            </h2>
+            {/* Your content */}
+          </div>
+        </section>
+      );
+    }
+    ```
+  </Step>
+
+  <Step title="Add Translations">
+    Add translation keys in `src/context/LanguageContext.tsx`:
+
+    ```typescript
+    const translations = {
+      en: {
+        'newSection.title': 'New Section',
+        'newSection.description': 'Description...',
+      },
+      // ... other languages
+    };
+    ```
+  </Step>
+
+  <Step title="Import and Use">
+    Import the component in your main app file:
+
+    ```typescript src/App.tsx
+    import NewSection from './components/NewSection';
+
+    function App() {
+      return (
+        <>
+          {/* Other sections */}
+          <NewSection />
+          {/* More sections */}
+        </>
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+### Section Styling Guidelines
+
+Maintain consistency with existing sections:
+
+```jsx
+{/* Standard section wrapper */}
+<section className="py-24 md:py-32 px-6 md:px-12 bg-black border-t border-white/10 relative z-10">
+  <div className="max-w-7xl mx-auto w-full">
+    {/* Content */}
+  </div>
+</section>
+```
+
+- `py-24 md:py-32`: Vertical padding (responsive)
+- `px-6 md:px-12`: Horizontal padding (responsive)
+- `bg-black`: Background color
+- `border-t border-white/10`: Subtle top border
+- `relative z-10`: Proper stacking context
+- `max-w-7xl mx-auto`: Centered container with max width
+
+## Analytics Customization
+
+### Microsoft Clarity
+
+To add your Clarity project:
+
+1. Get your Clarity project ID from [clarity.microsoft.com](https://clarity.microsoft.com)
+2. Update the initialization in your app
+
+### Vercel Analytics
+
+The portfolio includes Vercel Analytics:
+
+```typescript
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
+function App() {
+  return (
+    <>
+      <YourApp />
+      <Analytics />
+      <SpeedInsights />
+    </>
+  );
+}
+```
+
+These work automatically when deployed to Vercel.
+
+## Performance Customization
+
+### Disable Animations on Low-End Devices
+
+Detect reduced motion preference:
+
+```typescript
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+if (!prefersReducedMotion) {
+  // Enable animations
+}
+```
+
+### Lazy Loading Components
+
+Lazy load heavy components:
+
+```typescript
+import { lazy, Suspense } from 'react';
+
+const HeavyComponent = lazy(() => import('./components/HeavyComponent'));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HeavyComponent />
+    </Suspense>
+  );
+}
+```
+
+<Warning>
+  The GitHub calendar component is already lazy loaded. Be careful when modifying the Suspense boundaries.
+</Warning>
+
+## Next Steps
+
+- [Build for production](/development/building)
+- [Deploy to Vercel](/deployment/vercel)
+- [Optimize performance](/optimization/overview)

@@ -1,97 +1,291 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Welcome to Yeray Garrido Portfolio Documentation
+description: Explore the architecture and implementation details of a performance-optimized React portfolio with custom GSAP animations
+mode: custom
 ---
 
-## Setting up
+<div className="relative w-full overflow-hidden bg-gradient-to-b from-[#000000] via-[#0a0a0a] to-[#0f1117] dark:from-[#000000] dark:via-[#0a0a0a] dark:to-[#0f1117]">
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(124,124,124,0.15),transparent_50%)]"></div>
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(211,211,211,0.08),transparent_50%)]"></div>
+  
+  <div className="relative py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white dark:text-white mb-6 leading-tight">
+          Performance-Optimized React Portfolio
+        </h1>
+        <p className="text-base sm:text-lg lg:text-xl text-gray-400 dark:text-gray-400 max-w-2xl mb-8 leading-relaxed">
+          A deep dive into building a modern portfolio website with custom GSAP animations, technical SEO, and Core Web Vitals optimization. Learn how to implement smooth scrolling, lazy loading, and multi-language support.
+        </p>
+        <div className="flex flex-wrap gap-3 sm:gap-4">
+          <a 
+            href="/getting-started" 
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-[#7c7c7c] hover:bg-[#6a6a6a] rounded-lg transition-colors duration-200 no-underline"
+          >
+            Get Started
+          </a>
+          <a 
+            href="/architecture/project-structure" 
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white dark:text-white bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 border border-white/30 dark:border-white/30 rounded-lg transition-colors duration-200 no-underline"
+          >
+            Explore Architecture
+          </a>
+        </div>
+      </div>
+      
+      <div className="lg:col-span-5 flex justify-center lg:justify-end">
+        <div className="relative w-full max-w-md">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#7c7c7c] to-[#d3d3d3] rounded-2xl blur-3xl opacity-20"></div>
+          <div className="relative bg-[#1a1d27] dark:bg-[#1a1d27] border border-[#27272a] dark:border-[#27272a] rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div className="font-mono text-sm text-gray-300 dark:text-gray-300 space-y-2">
+              <div><span className="text-[#7c7c7c]">const</span> portfolio = <span className="text-yellow-400">{'{'}</span></div>
+              <div className="pl-4"><span className="text-blue-400">tech</span>: <span className="text-green-400">'React 19 + Vite'</span>,</div>
+              <div className="pl-4"><span className="text-blue-400">animations</span>: <span className="text-green-400">'GSAP + ScrollTrigger'</span>,</div>
+              <div className="pl-4"><span className="text-blue-400">styling</span>: <span className="text-green-400">'Tailwind CSS v4'</span>,</div>
+              <div className="pl-4"><span className="text-blue-400">i18n</span>: <span className="text-green-400">'Custom Context'</span>,</div>
+              <div className="pl-4"><span className="text-blue-400">performance</span>: <span className="text-green-400">'100/100 Lighthouse'</span></div>
+              <div><span className="text-yellow-400">{'}'}</span>;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Quick start
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Get the portfolio running locally in minutes
+    </p>
+  </div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Clone the repository">
+      Clone the repository from GitHub to your local machine.
+      
+      ```bash
+      git clone https://github.com/Garridoparrayeray/yeraygarrido.dev.git
+      cd yeraygarrido.dev
+      ```
+    </Step>
+    
+    <Step title="Install dependencies">
+      Install all required packages using npm. Requires Node.js 18 or higher.
+      
+      ```bash
+      npm install
+      ```
+      
+      <Note>
+        The project uses React 19, Vite 6, GSAP 3.14, and Tailwind CSS v4. All dependencies will be installed automatically.
+      </Note>
+    </Step>
+    
+    <Step title="Start the development server">
+      Launch the Vite development server with hot module replacement.
+      
+      ```bash
+      npm run dev
+      ```
+      
+      The site will be available at `http://localhost:3000`. The development server runs on all interfaces (`0.0.0.0`) for network access.
+    </Step>
+    
+    <Step title="Build for production">
+      Create an optimized production build with minification and code splitting.
+      
+      ```bash
+      npm run build
+      ```
+      
+      <Accordion title="Build output details">
+        The build process uses Terser for minification with console and debugger statements removed. GSAP and react-github-calendar are split into separate vendor chunks for optimal loading. CSS is code-split and injected via JavaScript for Tailwind v4 compatibility.
+      </Accordion>
+    </Step>
+  </Steps>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Explore by topic
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Dive deep into the technical implementation
+    </p>
+  </div>
 
-Design a docs site that looks great and empowers your users.
+  <CardGroup cols={3}>
+    <Card 
+      title="Architecture" 
+      icon="sitemap" 
+      href="/architecture/project-structure"
+    >
+      Learn about the project structure, performance strategies, and animation system architecture
+    </Card>
+    <Card 
+      title="Components" 
+      icon="puzzle-piece" 
+      href="/components/hero"
+    >
+      Explore the modular React components including Hero, Header, Interactive Canvas, and more
+    </Card>
+    <Card 
+      title="Features" 
+      icon="sparkles" 
+      href="/features/internationalization"
+    >
+      Discover key features like i18n, lazy loading, smooth scrolling, and the public CV API
+    </Card>
+    <Card 
+      title="Performance" 
+      icon="gauge-high" 
+      href="/architecture/performance-optimization"
+    >
+      Deep dive into Core Web Vitals optimization, lazy loading strategies, and render performance
+    </Card>
+    <Card 
+      title="Animations" 
+      icon="wand-magic-sparkles" 
+      href="/architecture/animation-system"
+    >
+      Understand GSAP implementation, ScrollTrigger integration, and timeline management
+    </Card>
+    <Card 
+      title="Development" 
+      icon="code" 
+      href="/development/local-setup"
+    >
+      Get started with local development, building for production, and customization guides
+    </Card>
+  </CardGroup>
+</div>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Key features
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Production-ready patterns and optimizations
+    </p>
+  </div>
 
-## Create beautiful pages
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+    <a href="/architecture/animation-system" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] overflow-hidden transition-colors duration-200 no-underline">
+      <div className="h-56 overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#1a1d27] to-[#0f1117] dark:from-[#1a1d27] dark:to-[#0f1117]">
+        <div className="text-6xl">⚡</div>
+      </div>
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Custom GSAP animations
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Scroll-triggered animations with timeline management and GPU acceleration for smooth 60fps performance
+        </p>
+        <div className="flex items-center gap-2 text-sm font-medium text-[#7c7c7c] group-hover:text-[#6a6a6a] dark:text-[#7c7c7c] dark:group-hover:text-[#8c8c8c]">
+          Learn more
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-Everything you need to create world-class documentation.
+    <a href="/features/internationalization" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] overflow-hidden transition-colors duration-200 no-underline">
+      <div className="h-56 overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#1a1d27] to-[#0f1117] dark:from-[#1a1d27] dark:to-[#0f1117]">
+        <div className="text-6xl">🌍</div>
+      </div>
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Multi-language support
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Custom React Context implementation for English, Spanish, and Basque with dynamic SEO metadata updates
+        </p>
+        <div className="flex items-center gap-2 text-sm font-medium text-[#7c7c7c] group-hover:text-[#6a6a6a] dark:text-[#7c7c7c] dark:group-hover:text-[#8c8c8c]">
+          Learn more
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <a href="/features/lazy-loading" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] overflow-hidden transition-colors duration-200 no-underline">
+      <div className="h-56 overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#1a1d27] to-[#0f1117] dark:from-[#1a1d27] dark:to-[#0f1117]">
+        <div className="text-6xl">🚀</div>
+      </div>
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Lazy-loaded components
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          React Suspense boundaries with interaction-triggered loading for optimal Time to Interactive (TTI)
+        </p>
+        <div className="flex items-center gap-2 text-sm font-medium text-[#7c7c7c] group-hover:text-[#6a6a6a] dark:text-[#7c7c7c] dark:group-hover:text-[#8c8c8c]">
+          Learn more
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-## Need inspiration?
+    <a href="/features/public-api" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] overflow-hidden transition-colors duration-200 no-underline">
+      <div className="h-56 overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#1a1d27] to-[#0f1117] dark:from-[#1a1d27] dark:to-[#0f1117]">
+        <div className="text-6xl">📡</div>
+      </div>
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Public CV API
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Static XML and JSON endpoints for programmatic access to CV data directly from the terminal
+        </p>
+        <div className="flex items-center gap-2 text-sm font-medium text-[#7c7c7c] group-hover:text-[#6a6a6a] dark:text-[#7c7c7c] dark:group-hover:text-[#8c8c8c]">
+          Learn more
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="bg-gradient-to-r from-[#1a1d27] to-[#0f1117] dark:from-[#1a1d27] dark:to-[#0f1117] rounded-2xl border border-[#27272a] dark:border-[#27272a] p-8 md:p-12 text-center">
+    <h2 className="text-2xl sm:text-3xl font-bold text-white dark:text-white mb-4">
+      Ready to explore the codebase?
+    </h2>
+    <p className="text-base text-gray-400 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+      Dive into the source code and see how this portfolio was built with performance and user experience as top priorities.
+    </p>
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+      <a 
+        href="/getting-started" 
+        className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-[#7c7c7c] hover:bg-[#6a6a6a] rounded-lg transition-colors duration-200 no-underline"
+      >
+        Get Started
+      </a>
+      <a 
+        href="https://github.com/Garridoparrayeray/yeraygarrido.dev" 
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white dark:text-white bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 border border-white/30 dark:border-white/30 rounded-lg transition-colors duration-200 no-underline"
+      >
+        View on GitHub
+      </a>
+    </div>
+  </div>
+</div>
