@@ -1,0 +1,268 @@
+---
+title: Stats
+description: GitHub statistics display with repository count, commit estimates, and follower count
+---
+
+## Overview
+
+The Stats component fetches and displays GitHub statistics for the portfolio owner:
+- Public repository count
+- Estimated total commits
+- Follower count
+
+Statistics are fetched from the GitHub API and animated with IntersectionObserver when scrolled into view.
+
+## Component structure
+
+```typescript src/components/Stats.tsx
+import { useEffect, useState, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+
+interface GithubStats {
+  public_repos: number;
+  followers: number;
+  following: number;
+  created_at: string;
+}
+
+export default function Stats() {
+  const { t } = useLanguage();
+  const [stats, setStats] = useState<GithubStats | null>(null);
+  const [commits, setCommits] = useState<number>(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Fetch GitHub stats
+  useEffect(() => {
+    fetch('https://api.github.com/users/Garridoparrayeray')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setStats(data);
+        const years = Math.max(1, new Date().getFullYear() - new Date(data.created_at).getFullYear() + 1);
+        setCommits(data.public_repos * 42 + years * 120);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Animate on scroll into view
+  useEffect(() => {
+    if (!stats) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('[data-reveal]').forEach((el, i) => {
+            (el as HTMLElement).style.transitionDelay = `${i * 0.15}s`;
+            el.classList.add('in-view');
+          });
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    if (sectionRef.current) io.observe(sectionRef.current);
+    return () => io.disconnect();
+  }, [stats]);
+
+  if (!stats) return null;
+
+  return (
+    <section ref={sectionRef} className="py-16 md:py-24 px-6 md:px-12 bg-black border-t border-white/10 relative z-10 overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          {[
+            { label: t('stats.repos'), value: stats.public_repos, suffix: '+' },
+            { label: t('stats.commits'), value: commits, suffix: '+' },
+            { label: t('stats.followers'), value: stats.followers, suffix: '' },
+          ].map((stat, i) => (
+            <div key={i} data-reveal="up" className="flex flex-col items-center text-center group">
+              <span className="font-wide text-4xl md:text-6xl font-bold text-white mb-2 transition-transform duration-500 group-hover:scale-110 inline-block">
+                {stat.value}{stat.suffix}
+              </span>
+              <span className="font-sans text-xs md:text-sm tracking-widest uppercase text-white/50 font-bold group-hover:text-white/80 transition-colors">
+                {stat.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+## Features
+
+### GitHub API integration
+
+Statistics are fetched from the GitHub Users API:
+
+```typescript src/components/Stats.tsx:17-27
+fetch('https://api.github.com/users/Garridoparrayeray')
+  .then(r => r.ok ? r.json() : null)
+  .then(data => {
+    if (!data) return;
+    setStats(data);
+    const years = Math.max(1, new Date().getFullYear() - new Date(data.created_at).getFullYear() + 1);
+    setCommits(data.public_repos * 42 + years * 120);
+  })
+  .catch(() => {});
+```
+
+<Info>
+  The fetch includes error handling to gracefully fail if the API is unavailable. The component returns `null` if stats aren't loaded.
+</Info>
+
+### Commit estimation algorithm
+
+Total commits are estimated using a heuristic formula:
+
+```typescript
+const years = Math.max(1, new Date().getFullYear() - new Date(data.created_at).getFullYear() + 1);
+setCommits(data.public_repos * 42 + years * 120);
+```
+
+**Formula breakdown:**
+- `public_repos * 42`: Assumes ~42 commits per repository on average
+- `years * 120`: Adds ~120 commits per year for private work and deleted repos
+- `Math.max(1, ...)`: Ensures at least 1 year even for new accounts
+
+<Note>
+  This is an estimation, not an exact count. The GitHub API doesn't expose total commit counts without iterating through all repositories and their commits.
+</Note>
+
+### Staggered reveal animation
+
+Statistics animate with a 0.15s stagger between each:
+
+```typescript src/components/Stats.tsx:34-36
+e.target.querySelectorAll('[data-reveal]').forEach((el, i) => {
+  (el as HTMLElement).style.transitionDelay = `${i * 0.15}s`;
+  el.classList.add('in-view');
+});
+```
+
+Animation triggers when 20% of the section is visible (threshold: 0.2).
+
+### Hover effects
+
+Each statistic card has interactive hover states:
+- **Number**: Scales up to 110% on hover
+- **Label**: Color changes from `white/50` to `white/80`
+- **Transitions**: 500ms duration for smooth effects
+
+```typescript src/components/Stats.tsx:58-63
+<span className="font-wide text-4xl md:text-6xl font-bold text-white mb-2 transition-transform duration-500 group-hover:scale-110 inline-block">
+  {stat.value}{stat.suffix}
+</span>
+<span className="font-sans text-xs md:text-sm tracking-widest uppercase text-white/50 font-bold group-hover:text-white/80 transition-colors">
+  {stat.label}
+</span>
+```
+
+## Internationalization
+
+Stat labels are translated using the `useLanguage` hook:
+
+<ParamField path="stats.repos" type="string">
+  Label for repository count (e.g., "Public Repositories", "Repositorios Públicos")
+</ParamField>
+
+<ParamField path="stats.commits" type="string">
+  Label for commit estimate (e.g., "Total Commits (Est.)", "Commits Totales (Est.)")
+</ParamField>
+
+<ParamField path="stats.followers" type="string">
+  Label for follower count (e.g., "GitHub Followers", "Seguidores GitHub")
+</ParamField>
+
+## Responsive design
+
+### Grid layout
+
+- **Mobile**: Single column (`grid-cols-1`)
+- **Desktop**: Three columns (`md:grid-cols-3`)
+- **Gap**: 8px mobile, 12px desktop
+
+### Typography scaling
+
+- **Numbers**: 4xl (36px) mobile, 6xl (60px) desktop
+- **Labels**: xs (12px) mobile, sm (14px) desktop
+
+## Styling details
+
+### Background
+
+- **Color**: Black (`bg-black`)
+- **Border**: Top border with `white/10` opacity
+- **z-index**: 10 for proper stacking
+
+### Typography
+
+- **Numbers**: `font-wide` (wide spacing) with bold weight
+- **Labels**: `font-sans` with widest letter-spacing and uppercase
+
+## Error handling
+
+The component handles API failures gracefully:
+
+1. Returns `null` if stats haven't loaded yet
+2. Catches fetch errors silently (empty catch block)
+3. Checks for `r.ok` before parsing JSON
+
+<Warning>
+  If the GitHub API rate limit is exceeded, the component won't display. Consider implementing a fallback or cached values for production.
+</Warning>
+
+## Dependencies
+
+<ParamField path="useLanguage" type="hook">
+  Custom hook from LanguageContext for accessing translation function
+</ParamField>
+
+<ParamField path="useState" type="React hook">
+  Manages GitHub stats and commit count state
+</ParamField>
+
+<ParamField path="useEffect" type="React hook">
+  Fetches GitHub data and sets up IntersectionObserver
+</ParamField>
+
+<ParamField path="useRef" type="React hook">
+  References the section element for IntersectionObserver
+</ParamField>
+
+## GitHub API response
+
+The component uses these fields from the GitHub Users API:
+
+<ResponseField name="public_repos" type="number">
+  Number of public repositories
+</ResponseField>
+
+<ResponseField name="followers" type="number">
+  Number of followers
+</ResponseField>
+
+<ResponseField name="following" type="number">
+  Number of accounts followed (not currently displayed)
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  Account creation date (ISO 8601 format) used to calculate years active
+</ResponseField>
+
+## Related components
+
+<CardGroup cols={2}>
+  <Card title="Contact" icon="envelope" href="/components/contact">
+    Another section with GitHub-related content
+  </Card>
+  <Card title="Experience" icon="timeline" href="/components/experience">
+    Similar IntersectionObserver animation pattern
+  </Card>
+  <Card title="Internationalization" icon="language" href="/features/internationalization">
+    Learn about the translation system
+  </Card>
+  <Card title="Animation system" icon="wand-magic-sparkles" href="/architecture/animation-system">
+    Understand the reveal animation patterns
+  </Card>
+</CardGroup>

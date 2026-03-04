@@ -45,10 +45,13 @@
           "components/hero",
           "components/header",
           "components/interactive-canvas",
+          "components/intro",
           "components/experience",
           "components/stack",
           "components/projects",
-          "components/contact"
+          "components/stats",
+          "components/contact",
+          "components/footer"
         ]
       },
       {

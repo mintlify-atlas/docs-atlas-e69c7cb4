@@ -1,0 +1,213 @@
+---
+title: Intro
+description: Introduction section with feature highlights and technical expertise showcase
+---
+
+## Overview
+
+The Intro component displays a two-part introduction section:
+1. A full-height black section with the main value proposition
+2. A light gray section showcasing four key technical expertise areas
+
+The component uses IntersectionObserver for staggered reveal animations as elements enter the viewport.
+
+## Component structure
+
+```typescript src/components/Intro.tsx
+import { useEffect, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+
+export default function Intro() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
+
+  const features = [
+    { num: '01', title: t('intro.feat1.title'), desc: t('intro.feat1.desc') },
+    { num: '02', title: t('intro.feat2.title'), desc: t('intro.feat2.desc') },
+    { num: '03', title: t('intro.feat3.title'), desc: t('intro.feat3.desc') },
+    { num: '04', title: t('intro.feat4.title'), desc: t('intro.feat4.desc') },
+  ];
+
+  useEffect(() => {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in-view');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    sectionRef.current?.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="relative z-10">
+      {/* Black section with value proposition */}
+      <div className="bg-black text-white py-24 md:py-32 min-h-[100svh]">
+        {/* ... */}
+      </div>
+      
+      {/* Light section with expertise areas */}
+      <div className="bg-[#f2f2f2] text-black pt-24 pb-24 md:pt-32 md:pb-32">
+        {/* ... */}
+      </div>
+    </section>
+  );
+}
+```
+
+## Features
+
+### Two-tone layout
+
+The component uses contrasting color schemes:
+- **Black section**: Dark background with white text for main messaging
+- **Light gray section**: `#f2f2f2` background with black text for expertise cards
+
+### Internationalization
+
+All text content is translated using the `useLanguage` hook:
+
+<ParamField path="intro.title1" type="string">
+  First line of main heading (e.g., "SOFTWARE")
+</ParamField>
+
+<ParamField path="intro.title2" type="string">
+  Second line of main heading (e.g., "ENGINEERING")
+</ParamField>
+
+<ParamField path="intro.desc1" type="string">
+  Main value proposition paragraph
+</ParamField>
+
+<ParamField path="intro.subtitle1" type="string">
+  First line of subtitle (e.g., "CUSTOM")
+</ParamField>
+
+<ParamField path="intro.subtitle2" type="string">
+  Second line of subtitle (e.g., "SOLUTIONS")
+</ParamField>
+
+<ParamField path="intro.desc2" type="string">
+  Secondary description paragraph
+</ParamField>
+
+<ParamField path="intro.expertise1" type="string">
+  First line of expertise heading (e.g., "TECHNICAL")
+</ParamField>
+
+<ParamField path="intro.expertise2" type="string">
+  Second line of expertise heading (grayed out)
+</ParamField>
+
+<ParamField path="intro.feat1.title" type="string">
+  Title for first expertise area (e.g., "JAVA BACKEND")
+</ParamField>
+
+<ParamField path="intro.feat1.desc" type="string">
+  Description for first expertise area
+</ParamField>
+
+### IntersectionObserver animations
+
+Elements are animated as they enter the viewport:
+
+```typescript src/components/Intro.tsx:15-23
+useEffect(() => {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  
+  sectionRef.current?.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  return () => io.disconnect();
+}, []);
+```
+
+<Info>
+  Elements with the `data-reveal` attribute are observed and animated when 10% of them becomes visible (threshold: 0.1).
+</Info>
+
+### Expertise cards
+
+Four expertise areas are displayed with:
+- **Large numbers**: 20vw (mobile) to 12vw (desktop) for visual hierarchy
+- **Staggered animations**: Each card has a delay based on its index (i * 0.06s)
+- **Hover effects**: Scale transform on the large number (scale-110)
+- **Responsive layout**: Vertical stacking on mobile, horizontal on desktop
+
+```typescript src/components/Intro.tsx:52-62
+{features.map((feature, i) => (
+  <div key={i} className="border-b-2 border-black py-12 md:py-24 flex flex-col md:flex-row gap-6 md:gap-24 relative overflow-hidden group">
+    <div 
+      data-reveal="left" 
+      style={{transitionDelay:`${i*0.06}s`}} 
+      className="font-display text-[20vw] md:text-[12vw] leading-none text-black/10 md:text-black/20 select-none transition-transform duration-500 group-hover:scale-110 origin-left"
+    >
+      {feature.num}
+    </div>
+    <div data-reveal="right" style={{transitionDelay:`${i*0.06+0.12}s`}} className="flex-1 flex flex-col justify-end">
+      <h3 className="font-wide text-xl md:text-4xl font-bold uppercase mb-4 tracking-wider">{feature.title}</h3>
+      <p className="font-sans text-base md:text-xl text-black/70 max-w-xl leading-relaxed">{feature.desc}</p>
+    </div>
+  </div>
+))}
+```
+
+## Styling details
+
+### Full viewport height
+
+The black section uses `min-h-[100svh]` (small viewport height) to ensure it fills the screen on mobile devices with dynamic address bars.
+
+### Border-based dividers
+
+Expertise cards are separated with 2px black borders:
+- Top border on the container
+- Bottom border on each card
+
+This creates a consistent, brutalist aesthetic.
+
+### Opacity hierarchy
+
+- Large numbers: `text-black/10` on mobile, `text-black/20` on desktop
+- Body text in black section: `text-white/80`
+- Body text in light section: `text-black/70`
+- Second line of expertise heading: `text-black/30`
+
+## Dependencies
+
+<ParamField path="useLanguage" type="hook">
+  Custom hook from LanguageContext for accessing translation function
+</ParamField>
+
+<ParamField path="useEffect" type="React hook">
+  Sets up IntersectionObserver for reveal animations
+</ParamField>
+
+<ParamField path="useRef" type="React hook">
+  References the section element for querying child elements
+</ParamField>
+
+## Related components
+
+<CardGroup cols={2}>
+  <Card title="Experience" icon="timeline" href="/components/experience">
+    Also uses IntersectionObserver for reveal animations
+  </Card>
+  <Card title="Stack" icon="layer-group" href="/components/stack">
+    Similar grid layout with staggered reveals
+  </Card>
+  <Card title="Internationalization" icon="language" href="/features/internationalization">
+    Learn about the translation system
+  </Card>
+  <Card title="Animation system" icon="wand-magic-sparkles" href="/architecture/animation-system">
+    Understand the animation patterns used
+  </Card>
+</CardGroup>

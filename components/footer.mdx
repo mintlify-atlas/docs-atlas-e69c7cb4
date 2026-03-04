@@ -1,0 +1,305 @@
+---
+title: Footer
+description: Site footer with legal links, copyright information, and modal dialogs for legal notices
+---
+
+## Overview
+
+The Footer component provides:
+- Copyright attribution and link to GitHub profile
+- Legal links (Legal Notice, Privacy, Cookies)
+- Modal dialogs with detailed legal content in three languages
+- Event listener for cookie banner integration
+
+All content is fully internationalized for English, Spanish, and Basque.
+
+## Component structure
+
+```typescript src/components/Footer.tsx
+import React, { useState, useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
+
+type ModalType = "legal" | "privacy" | "cookies" | null;
+
+export default function Footer() {
+  const { language, t } = useLanguage();
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+
+  // Listen for cookie banner events
+  useEffect(() => {
+    const handleOpenCookies = () => setActiveModal("cookies");
+    window.addEventListener("open-cookies-modal", handleOpenCookies);
+    return () => {
+      window.removeEventListener("open-cookies-modal", handleOpenCookies);
+    };
+  }, []);
+
+  const legalContent = {
+    es: { /* Spanish content */ },
+    en: { /* English content */ },
+    eu: { /* Basque content */ }
+  };
+
+  const currentContent = legalContent[language as keyof typeof legalContent] || legalContent.es;
+
+  return (
+    <>
+      <footer className="w-full py-8 px-6 md:px-12 border-t border-black/10 bg-white text-black relative z-10">
+        {/* Footer content */}
+      </footer>
+      
+      {activeModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-12 animate-fade-in">
+          {/* Modal content */}
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+## Features
+
+### Three-column layout
+
+The footer is divided into three responsive sections:
+
+1. **Left**: "Made with ❤️ by Yeray Garrido" with GitHub link
+2. **Center**: Copyright notice with current year
+3. **Right**: Legal links (Legal Notice, Privacy, Cookies)
+
+On mobile, these stack vertically. On desktop (`md:` breakpoint), they form a three-column layout with `flex-1` for equal distribution.
+
+### Cookie banner integration
+
+The footer listens for a custom event to open the cookies modal:
+
+```typescript src/components/Footer.tsx:11-19
+useEffect(() => {
+  const handleOpenCookies = () => setActiveModal("cookies");
+  
+  window.addEventListener("open-cookies-modal", handleOpenCookies);
+  
+  return () => {
+    window.removeEventListener("open-cookies-modal", handleOpenCookies);
+  };
+}, []);
+```
+
+This allows the Cookie-Banner component to trigger the modal programmatically:
+
+```typescript
+window.dispatchEvent(new Event("open-cookies-modal"));
+```
+
+### Modal dialogs
+
+Three modal types are available:
+
+<Tabs>
+  <Tab title="Legal Notice">
+    Explains the portfolio's purpose, disclaims commercial intent, and clarifies that linked GitHub repositories have their own licenses.
+  </Tab>
+  <Tab title="Privacy Policy">
+    Details data handling practices:
+    - No registration forms or user databases
+    - Contact data used only for responding to inquiries
+    - Vercel collects anonymous performance metrics
+    - No third-party data sharing
+  </Tab>
+  <Tab title="Cookie Policy">
+    Describes cookie usage:
+    - **Technical cookies**: Language preference and cookie consent (no consent required)
+    - **Analytical cookies**: Microsoft Clarity (requires explicit consent)
+    - Instructions for revoking consent
+  </Tab>
+</Tabs>
+
+### Modal implementation
+
+Modals are rendered with a backdrop blur and centered card:
+
+```typescript src/components/Footer.tsx:80-99
+{activeModal && (
+  <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-12 animate-fade-in">
+    <div 
+      className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer" 
+      onClick={() => setActiveModal(null)}
+    ></div>
+    <div className="relative w-full max-w-2xl max-h-[80vh] bg-white border border-black/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-up">
+      <div className="flex justify-between items-center p-6 border-b border-black/10">
+        <h2 className="font-wide text-xl text-black font-bold">
+          {currentContent.modalContent[activeModal].title}
+        </h2>
+        <button onClick={() => setActiveModal(null)} className="...">
+          {/* Close icon */}
+        </button>
+      </div>
+      <div className="p-6 overflow-y-auto modal-scroll" data-lenis-prevent="true">
+        <p className="font-sans text-black/70 text-sm md:text-base leading-relaxed whitespace-pre-line font-medium text-justify">
+          {currentContent.modalContent[activeModal].body}
+        </p>
+      </div>
+    </div>
+  </div>
+)}
+```
+
+<Note>
+  The modal content uses `data-lenis-prevent="true"` to disable smooth scrolling inside the modal, allowing normal scroll behavior.
+</Note>
+
+## Internationalization
+
+All content is translated for three languages:
+
+<ParamField path="contact.footer.madeWith" type="string">
+  "Made with ❤️ by" text
+</ParamField>
+
+<ParamField path="contact.footer.copyright" type="string">
+  Copyright text with `{year}` parameter
+</ParamField>
+
+Legal content is stored in a nested object structure:
+
+```typescript
+const legalContent = {
+  es: {
+    links: { legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies" },
+    modalContent: {
+      legal: { title: "Aviso Legal", body: "..." },
+      privacy: { title: "Política de Privacidad", body: "..." },
+      cookies: { title: "Política de Cookies", body: "..." }
+    }
+  },
+  en: { /* ... */ },
+  eu: { /* ... */ }
+};
+```
+
+<Tip>
+  The footer falls back to Spanish (`legalContent.es`) if the current language isn't found in the legal content object.
+</Tip>
+
+## Styling details
+
+### Footer bar
+
+- **Background**: White (`bg-white`)
+- **Text color**: Black with 80% opacity (`text-black/80`)
+- **Border**: Top border with `black/10` opacity
+- **Typography**: 10px mobile, 12px desktop, uppercase, wide tracking
+
+### Modal animations
+
+Two CSS animations are defined inline:
+
+```css
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+.animate-scale-up { animation: scaleUp 0.3s ease-out forwards; }
+```
+
+The backdrop fades in while the modal scales up from 95% to 100%, creating a smooth entrance.
+
+### Custom scrollbar
+
+Modal content has a minimal custom scrollbar:
+
+```css
+.modal-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+```
+
+## Accessibility
+
+### Semantic HTML
+
+The component uses:
+- `<footer>` element for the footer landmark
+- `<button>` elements for interactive links (not `<a>` tags)
+- Proper modal structure with header and content sections
+
+### Keyboard navigation
+
+- Backdrop can be clicked to close modal
+- Close button in header provides explicit dismiss action
+- Modal is rendered at z-index 1000 to ensure it's on top
+
+### Screen reader support
+
+Text content is structured with proper heading hierarchy:
+- Modal titles use `<h2>` tags
+- Body content uses semantic paragraph tags
+
+## Legal content details
+
+### Legal Notice
+
+- Clarifies the site's informational purpose
+- States it's a personal portfolio (not e-commerce)
+- Addresses GitHub repository licensing
+
+### Privacy Policy
+
+- No registration or databases
+- Contact data used only for responding
+- Vercel's anonymous performance metrics disclosed
+- No third-party sharing
+
+### Cookie Policy
+
+- **Technical cookies**: Language preference and consent choice
+- **Analytical cookies**: Microsoft Clarity (opt-in only)
+- Instructions for consent revocation
+
+<Warning>
+  This legal content is specific to Yeray Garrido's portfolio. If you're customizing this project for your own use, you must update all legal content to reflect your own practices and jurisdiction.
+</Warning>
+
+## Dependencies
+
+<ParamField path="useLanguage" type="hook">
+  Custom hook from LanguageContext for accessing current language and translation function
+</ParamField>
+
+<ParamField path="useState" type="React hook">
+  Manages which modal (if any) is currently displayed
+</ParamField>
+
+<ParamField path="useEffect" type="React hook">
+  Sets up event listener for cookie banner integration
+</ParamField>
+
+## Related components
+
+<CardGroup cols={2}>
+  <Card title="Cookie-Banner" icon="cookie-bite" href="/components/contact">
+    Triggers the cookies modal via custom event
+  </Card>
+  <Card title="Contact" icon="envelope" href="/components/contact">
+    Another section with social links and CTAs
+  </Card>
+  <Card title="Internationalization" icon="language" href="/features/internationalization">
+    Learn about the translation system
+  </Card>
+  <Card title="Smooth scrolling" icon="arrows-up-down" href="/features/smooth-scrolling">
+    Understand the data-lenis-prevent attribute
+  </Card>
+</CardGroup>
