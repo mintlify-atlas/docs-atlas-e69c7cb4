@@ -1,0 +1,82 @@
+{
+  "projectType": "frontend",
+  "projectName": "Yeray Garrido Portfolio",
+  "projectDescription": "A performance-optimized React portfolio website showcasing full-stack development skills with custom GSAP animations and technical SEO",
+  "theme": "aspen",
+  "primaryColor": "#7c7c7c",
+  "lightColor": "#d3d3d3",
+  "darkColor": "#040404",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Overview",
+        "pages": [
+          "introduction",
+          "getting-started"
+        ]
+      },
+      {
+        "group": "Architecture",
+        "pages": [
+          "architecture/project-structure",
+          "architecture/performance-optimization",
+          "architecture/animation-system"
+        ]
+      },
+      {
+        "group": "Components",
+        "pages": [
+          "components/hero",
+          "components/header",
+          "components/interactive-canvas",
+          "components/experience",
+          "components/stack",
+          "components/projects",
+          "components/contact"
+        ]
+      },
+      {
+        "group": "Features",
+        "pages": [
+          "features/internationalization",
+          "features/lazy-loading",
+          "features/smooth-scrolling",
+          "features/public-api"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "development/local-setup",
+          "development/building",
+          "development/customization"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Custom GSAP scroll-triggered animations",
+    "Multi-language support (English, Spanish, Basque)",
+    "Lazy-loaded components with React Suspense",
+    "Lenis smooth scrolling integration",
+    "Public CV API endpoint (XML/JSON)",
+    "Optimized for Core Web Vitals",
+    "Interactive canvas background",
+    "Tailwind CSS v4 styling"
+  ],
+  "publicApiSurface": [
+    "LanguageProvider - Context for multi-language support",
+    "useLanguage - Hook for accessing language context and translation function",
+    "InteractiveCanvas - Animated canvas background component",
+    "Header - Navigation header with language switcher",
+    "Hero - Hero section with animated text reveal",
+    "Intro - Introduction section with feature highlights",
+    "Experience - Experience and education timeline",
+    "Stack - Technology stack grid display",
+    "Projects - Portfolio projects showcase",
+    "Stats - GitHub statistics display",
+    "ApiSection - Public API documentation section",
+    "Contact - Contact form and social links",
+    "Footer - Site footer with copyright information"
+  ]
+}
